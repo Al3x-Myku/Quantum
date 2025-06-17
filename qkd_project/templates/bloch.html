@@ -1,5 +1,188 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Sfera Bloch — Vizualizare stări qubit</h2>
-<p>Aici va apărea imaginea generată cu cele 4 stări de bază.</p>
+<h2>Sfera Bloch interactivă</h2>
+<div id="bloch-plot" style="width: 500px; height: 500px;"></div>
+<div class="row mt-4">
+  <div class="col-6">
+    <label for="theta" class="form-label">Theta (polar, 0-π): <span id="theta-val">1.57</span></label>
+    <input type="range" min="0" max="3.14" step="0.01" value="1.57" class="form-range" id="theta">
+  </div>
+  <div class="col-6">
+    <label for="phi" class="form-label">Phi (azimut, 0-2π): <span id="phi-val">0.00</span></label>
+    <input type="range" min="0" max="6.28" step="0.01" value="0.00" class="form-range" id="phi">
+  </div>
+</div>
+<div class="mt-3">
+  <b>Probabilitate |0⟩:</b> <span id="prob0"></span><br>
+  <b>Probabilitate |1⟩:</b> <span id="prob1"></span><br>
+  <b>Probabilitate |+⟩:</b> <span id="probplus"></span><br>
+  <b>Probabilitate |−⟩:</b> <span id="probminus"></span>
+</div>
+<div class="mt-3 mb-3">
+  <button class="btn btn-outline-primary btn-sm" onclick="setPreset('zero')">|0⟩ (sus)</button>
+  <button class="btn btn-outline-primary btn-sm" onclick="setPreset('one')">|1⟩ (jos)</button>
+  <button class="btn btn-outline-primary btn-sm" onclick="setPreset('plus')">|+⟩ (dreapta)</button>
+  <button class="btn btn-outline-primary btn-sm" onclick="setPreset('minus')">|−⟩ (stânga)</button>
+  <button class="btn btn-outline-primary btn-sm" onclick="setPreset('random')">Aleator</button>
+</div>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+function getBlochVector(theta, phi) {
+    return [
+        Math.sin(theta) * Math.cos(phi),
+        Math.sin(theta) * Math.sin(phi),
+        Math.cos(theta)
+    ];
+}
+function linspace(a, b, n) {
+    let arr = [];
+    let step = (b - a) / (n - 1);
+    for (let i = 0; i < n; i++) arr.push(a + step * i);
+    return arr;
+}
+function makeCircle3D(radius, z, n, color) {
+    // Cercul ecuatorial sau de latitudine
+    let t = linspace(0, 2 * Math.PI, n);
+    return {
+        type: 'scatter3d',
+        mode: 'lines',
+        x: t.map(a => radius * Math.cos(a)),
+        y: t.map(a => radius * Math.sin(a)),
+        z: t.map(_ => z),
+        line: {color: color, width: 1},
+        showlegend: false
+    };
+}
+function makeMeridian3D(radius, phi, n, color) {
+    // Cercul de longitudine (meridian)
+    let t = linspace(0, Math.PI, n);
+    return {
+        type: 'scatter3d',
+        mode: 'lines',
+        x: t.map(theta => radius * Math.sin(theta) * Math.cos(phi)),
+        y: t.map(theta => radius * Math.sin(theta) * Math.sin(phi)),
+        z: t.map(theta => radius * Math.cos(theta)),
+        line: {color: color, width: 1},
+        showlegend: false
+    };
+}
+function updateBloch(theta, phi) {
+    let [x, y, z] = getBlochVector(theta, phi);
+
+    // Mai multe latitudini (paralele)
+    let circles = [];
+    for (let lat = -0.75; lat <= 0.75; lat += 0.25) {
+        circles.push(makeCircle3D(Math.sqrt(1 - lat * lat), lat, 100, 'lightblue'));
+    }
+    // Ecuatorul
+    circles.push(makeCircle3D(1, 0, 100, 'blue'));
+
+    // Mai multe meridiane (longitudini)
+    for (let i = 0; i < 8; i++) {
+        let phi_m = i * Math.PI / 4;
+        circles.push(makeMeridian3D(1, phi_m, 100, i % 2 === 0 ? 'blue' : 'lightblue'));
+    }
+
+    // Axe XYZ
+    let axes = [
+        {
+            type: 'scatter3d',
+            mode: 'lines',
+            x: [0, 1.1], y: [0, 0], z: [0, 0],
+            line: {color: 'black', width: 3},
+            showlegend: false
+        },
+        {
+            type: 'scatter3d',
+            mode: 'lines',
+            x: [0, 0], y: [0, 1.1], z: [0, 0],
+            line: {color: 'black', width: 3},
+            showlegend: false
+        },
+        {
+            type: 'scatter3d',
+            mode: 'lines',
+            x: [0, 0], y: [0, 0], z: [0, 1.1],
+            line: {color: 'black', width: 3},
+            showlegend: false
+        },
+        {
+            type: 'scatter3d',
+            mode: 'lines',
+            x: [0, 0], y: [0, 0], z: [0, -1.1],
+            line: {color: 'black', width: 1, dash: 'dot'},
+            showlegend: false
+        }
+    ];
+
+    // Vectorul de stare
+    let stateVector = {
+        type: 'scatter3d',
+        mode: 'lines+markers',
+        x: [0, x],
+        y: [0, y],
+        z: [0, z],
+        line: {width: 8, color: 'red'},
+        marker: {size: 6, color: 'red'},
+        name: 'Qubit'
+    };
+
+    let data = [...circles, ...axes, stateVector];
+
+    let layout = {
+        scene: {
+            xaxis: {range: [-1.2,1.2], title: 'X', showspikes: false, zeroline: false, showgrid: false},
+            yaxis: {range: [-1.2,1.2], title: 'Y', showspikes: false, zeroline: false, showgrid: false},
+            zaxis: {range: [-1.2,1.2], title: 'Z', showspikes: false, zeroline: false, showgrid: false},
+            aspectmode: 'cube'
+        },
+        margin: {l:0, r:0, b:0, t:0},
+        showlegend: false
+    };
+
+    Plotly.newPlot('bloch-plot', data, layout, {displayModeBar: false});
+
+    // Probabilități
+    let prob0 = Math.pow(Math.cos(theta/2),2);
+    let prob1 = Math.pow(Math.sin(theta/2),2);
+    let prob_plus = 0.5 * (1 + Math.sin(theta)*Math.cos(phi));
+    let prob_minus = 0.5 * (1 - Math.sin(theta)*Math.cos(phi));
+
+    document.getElementById('prob0').innerText = prob0.toFixed(3);
+    document.getElementById('prob1').innerText = prob1.toFixed(3);
+    document.getElementById('probplus').innerText = prob_plus.toFixed(3);
+    document.getElementById('probminus').innerText = prob_minus.toFixed(3);
+}
+function setPreset(type) {
+    if(type === 'zero') {
+        theta = 0; phi = 0;
+    } else if(type === 'one') {
+        theta = Math.PI; phi = 0;
+    } else if(type === 'plus') {
+        theta = Math.PI/2; phi = 0;
+    } else if(type === 'minus') {
+        theta = Math.PI/2; phi = Math.PI;
+    } else if(type === 'random') {
+        theta = Math.random() * Math.PI;
+        phi = Math.random() * 2 * Math.PI;
+    }
+    document.getElementById('theta').value = theta;
+    document.getElementById('phi').value = phi;
+    document.getElementById('theta-val').innerText = theta.toFixed(2);
+    document.getElementById('phi-val').innerText = phi.toFixed(2);
+    updateBloch(theta, phi);
+}
+let theta = 1.57, phi = 0.00;
+updateBloch(theta, phi);
+document.getElementById('theta').addEventListener('input', function(e){
+    theta = parseFloat(e.target.value);
+    document.getElementById('theta-val').innerText = theta.toFixed(2);
+    updateBloch(theta, phi);
+});
+document.getElementById('phi').addEventListener('input', function(e){
+    phi = parseFloat(e.target.value);
+    document.getElementById('phi-val').innerText = phi.toFixed(2);
+    updateBloch(theta, phi);
+});
+</script>
 {% endblock %}

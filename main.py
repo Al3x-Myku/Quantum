@@ -55,7 +55,10 @@ def create_alice_circuit(bits, bases):
 
 def measure_message(qc, bases):
     n = qc.num_qubits
-    qc.add_register(QuantumCircuit(n).cregs[0])
+
+    if not qc.cregs:
+        qc.add_register(QuantumCircuit(n).cregs[0])
+
     for i in range(n):
         if bases[i] == 1:
             qc.h(i)
@@ -123,8 +126,15 @@ def run_bb84_simulation(with_eve=False):
 
     simulator = AerSimulator()
     result = simulator.run(full_qc, shots=1).result()
-    bob_measured_bits_str = list(result.get_counts().keys())[0]
-    bob_measured_bits = [int(bit) for bit in bob_measured_bits_str]
+    
+
+    counts = result.get_counts()
+    bob_measured_bits_str = list(counts.keys())[0]
+    
+  
+    padded_str = bob_measured_bits_str.zfill(KEY_LENGTH)
+    reversed_str = padded_str[::-1]
+    bob_measured_bits = [int(bit) for bit in reversed_str]
 
     alice_key = []
     bob_key = []

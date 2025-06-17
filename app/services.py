@@ -80,14 +80,29 @@ def run_bb84_simulation(with_eve=False, key_length=32):
     return {'log': "\n".join(log)}
 
 def run_e91_demo():
+    """
+    Service function to run the E91 protocol demo.
+    Returns a dictionary with the circuit diagram and results.
+    """
     qc = QuantumCircuit(2, 2)
     qc.h(0)
     qc.cx(0, 1)
     qc.barrier()
+
     qc.measure([0, 1], [0, 1])
-    circuit_diagram = qc.draw(output='text').getvalue()
+    
+    circuit_diagram = qc.draw(output='text')
+
     simulator = AerSimulator()
     result = simulator.run(qc, shots=1024).result()
     counts = result.get_counts()
-    observation = "Observație: Rezultatele sunt întotdeauna perfect corelate ('00' sau '11'). Acest lucru demonstrează principiul inseparabilității (entanglement) folosit în protocolul E91. Orice încercare de spionaj ar distruge această corelație."
-    return {'circuit': str(circuit_diagram), 'counts': counts, 'observation': observation}
+
+    observation = "Observație: Rezultatele sunt întotdeauna perfect corelate ('00' sau '11'). " \
+                  "Acest lucru demonstrează principiul inseparabilității (entanglement) " \
+                  "folosit în protocolul E91. Orice încercare de spionaj ar distruge această corelație."
+
+    return {
+        'circuit': str(circuit_diagram),
+        'counts': counts,
+        'observation': observation
+    }

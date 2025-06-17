@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% block title %}BB84 Interactiv - QKD Explorer{% endblock %}
+
+{% block content %}
+<div id="app" class="bg-black-100 p-4 md:p-6 rounded-lg shadow-lg relative">
+    
+    <!-- Notification Box -->
+    <div id="notification-box" class="hidden fixed top-5 right-5 bg-red-500 text-black py-2 px-4 rounded-lg shadow-lg z-50 transition-transform transform translate-x-full">
+        <p id="notification-message"></p>
+    </div>
+
+    <!-- Game Management UI -->
+    <div id="game-management" class="mb-6">
+        <h2 class="text-2xl font-bold text-black-800 mb-4">BB84 Simulare Interactivă Locală</h2>
+        <div class="flex flex-wrap gap-4 items-center p-4 border-2 border-dashed rounded-lg">
+            <div class="flex-grow">
+                <label for="keyLength" class="block text-sm font-medium text-black-700">Lungimea cheii (8-64):</label>
+                <input type="number" id="keyLength" class="mt-1 block w-full md:w-48 rounded-md border-black-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="16" min="8" max="64">
+            </div>
+            <div class="flex items-center gap-2">
+                 <input type="checkbox" id="includeEve" class="h-5 w-5 rounded border-black-300 text-indigo-600 focus:ring-indigo-500">
+                 <label for="includeEve" class="text-sm font-medium text-black-700">Include spion (Eve)?</label>
+            </div>
+            <button id="start-game-btn" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-black font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Începe Simularea</button>
+        </div>
+    </div>
+
+    <!-- Game Session UI (hidden by default) -->
+    <div id="game-session" class="hidden">
+        <h3 id="game-status-text" class="text-xl font-semibold text-center text-black-800 mb-4 p-3 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg"></h3>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Alice's Dashboard -->
+            <div id="alice-dashboard" class="player-dash p-5 bg-white rounded-xl shadow-lg border-t-4 border-blue-500"></div>
+            <!-- Eve's Dashboard -->
+            <div id="eve-dashboard" class="player-dash p-5 bg-white rounded-xl shadow-lg border-t-4 border-red-500"></div>
+            <!-- Bob's Dashboard -->
+            <div id="bob-dashboard" class="player-dash p-5 bg-white rounded-xl shadow-lg border-t-4 border-green-500"></div>
+        </div>
+
+        <!-- Sifting and Results View -->
+        <div id="sifting-results" class="mt-6 p-5 bg-white rounded-xl shadow-lg"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// --- App State ---
+let gameState = {};
+
+// --- UI Elements ---
+const startGameBtn = document.getElementById('start-game-btn');
+const gameMgmtUI = document.getElementById('game-management');
+const gameSessionUI = document.getElementById('game-session');
+
+// --- Notification System ---
+function showNotification(message) {
+    const box = document.getElementById('notification-box');
+    const msg = document.getElementById('notification-message');
+    if (!box || !msg) return;
+
+    msg.innerText = message;
+    box.classList.remove('hidden', 'translate-x-full');
+    box.classList.add('translate-x-0');
+
+    setTimeout(() => {
+        box.classList.remove('translate-x-0');
+        box.classList.add('translate-x-full');
+    }, 3000);
+}
+
+// --- Event Listeners ---
+startGameBtn.addEventListener('click', startGame);
+
+// --- Core Game Logic ---
+function startGame() {
+    const keyLength = parseInt(document.getElementById('keyLength').value);
+    const includeEve = document.getElementById('includeEve').checked;
+
+    if (keyLength < 8 || keyLength > 64) {
+        showNotification("Lungimea cheii trebuie să fie între 8 și 64.");
+        return;
+    }
+
+    gameState = {
+        keyLength,
+        includeEve,
+        state: 'awaiting_alice',
+        alice: null, eve: null, bob: null,
+        sifted: null, qber: null,
+    };
+    
+    gameMgmtUI.classList.add('hidden');
+    gameSessionUI.classList.remove('hidden');
+    renderGame();
+}
+
+function renderGame() {
+    // Clear all dashboards before rendering
+    document.getElementById('alice-dashboard').innerHTML = '';
+    document.getElementById('eve-dashboard').innerHTML = '';
+    document.getElementById('bob-dashboard').innerHTML = '';
+    document.getElementById('sifting-results').innerHTML = '';
+    
+    document.getElementById('eve-dashboard').classList.toggle('hidden', !gameState.includeEve);
+
+    let statusText = '';
+    switch (gameState.state) {
+        case 'awaiting_alice':
+            statusText = "Așteptând ca Alice să își aleagă biții și bazele...";
+            renderAliceSetup();
+            break;
+        case 'awaiting_interception':
+             statusText = "Transmisie cuantică... Așteptând ca Eve să intercepteze...";
+             renderAliceDone();
+             renderEveSetup();
+             break;
+        case 'awaiting_measurement':
+            statusText = "Transmisie cuantică... Așteptând ca Bob să măsoare...";
+            renderAliceDone();
+            if (gameState.includeEve) renderEveDone();
+            renderBobSetup();
+            break;
+        case 'sifting':
+            statusText = "Canal public: Alice și Bob își compară bazele.";
+            renderAliceDone();
+            if (gameState.includeEve) renderEveDone();
+            renderBobDone();
+            performSiftingAndFinish();
+            renderGame(); // Re-render to show final results
+            break;
+        case 'complete':
+             statusText = "Protocol finalizat! Cheia a fost stabilită (sau aruncată).";
+             renderAliceDone();
+             if (gameState.includeEve) renderEveDone();
+             renderBobDone();
+             renderResults();
+             break;
+    }
+    document.getElementById('game-status-text').innerText = statusText;
+}
+
+// --- Component Rendering Functions ---
+
+function renderAliceSetup() {
+    const dash = document.getElementById('alice-dashboard');
+    dash.innerHTML = `
+        <h4 class="text-xl font-bold text-blue-700 mb-3">Panou Alice</h4>
+        <p class="text-sm mb-4">Alege ${gameState.keyLength} biți secreți și ${gameState.keyLength} baze de codare (0=Rectiliniu[+], 1=Diagonal[x]).</p>
+        <button id="alice-random-btn" class="text-sm bg-black-200 hover:bg-black-300 py-1 px-3 rounded mb-4">Generează aleator</button>
+        <div class="space-y-2">
+            <div><label class="font-mono">Biți:</label><input id="alice-bits" type="text" class="w-full font-mono p-1 border rounded" maxlength="${gameState.keyLength}"></div>
+            <div><label class="font-mono">Baze:</label><input id="alice-bases" type="text" class="w-full font-mono p-1 border rounded" maxlength="${gameState.keyLength}"></div>
+        </div>
+        <button id="alice-submit-btn" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-black font-bold py-2 px-4 rounded">Trimite Qubiți</button>
+    `;
+    document.getElementById('alice-random-btn').onclick = () => {
+        document.getElementById('alice-bits').value = generateRandomString(gameState.keyLength);
+        document.getElementById('alice-bases').value = generateRandomString(gameState.keyLength);
+    };
+    document.getElementById('alice-submit-btn').onclick = submitAliceData;
+}
+
+function renderAliceDone() {
+    const dash = document.getElementById('alice-dashboard');
+    dash.innerHTML = `
+        <h4 class="text-xl font-bold text-blue-700 mb-3">Panou Alice</h4>
+        <div class="text-sm space-y-2 break-all">
+            <p><strong>Biți trimiși:</strong> <code class="font-mono bg-black-100 p-1 rounded">${gameState.alice.bits}</code></p>
+            <p><strong>Baze folosite:</strong> <code class="font-mono bg-black-100 p-1 rounded">${gameState.alice.bases}</code></p>
+        </div>
+    `;
+}
+
+function renderEveSetup() {
+    const dash = document.getElementById('eve-dashboard');
+     dash.innerHTML = `
+        <h4 class="text-xl font-bold text-red-700 mb-3">Panou Eve (Spion)</h4>
+        <p class="text-sm mb-4">Alege ${gameState.keyLength} baze pentru a intercepta și măsura qubiții.</p>
+        <button id="eve-random-btn" class="text-sm bg-black-200 hover:bg-black-300 py-1 px-3 rounded mb-4">Generează aleator</button>
+        <div><label class="font-mono">Baze:</label><input id="eve-bases" type="text" class="w-full font-mono p-1 border rounded" maxlength="${gameState.keyLength}"></div>
+        <button id="eve-submit-btn" class="mt-4 w-full bg-red-500 hover:bg-red-600 text-black font-bold py-2 px-4 rounded">Interceptează</button>
+    `;
+    document.getElementById('eve-random-btn').onclick = () => {
+        document.getElementById('eve-bases').value = generateRandomString(gameState.keyLength);
+    };
+    document.getElementById('eve-submit-btn').onclick = submitEveData;
+}
+
+function renderEveDone() {
+     const dash = document.getElementById('eve-dashboard');
+    dash.innerHTML = `
+        <h4 class="text-xl font-bold text-red-700 mb-3">Panou Eve (Spion)</h4>
+        <div class="text-sm space-y-2 break-all">
+            <p><strong>Baze folosite:</strong> <code class="font-mono bg-black-100 p-1 rounded">${gameState.eve.bases}</code></p>
+            <p><strong>Biți măsurați:</strong> <code class="font-mono bg-black-100 p-1 rounded">${gameState.eve.measuredBits}</code></p>
+        </div>
+    `;
+}
+
+function renderBobSetup() {
+    const dash = document.getElementById('bob-dashboard');
+    dash.innerHTML = `
+        <h4 class="text-xl font-bold text-green-700 mb-3">Panou Bob</h4>
+        <p class="text-sm mb-4">Qubiții au fost primiți. Alege ${gameState.keyLength} baze pentru a-i măsura.</p>
+        <button id="bob-random-btn" class="text-sm bg-black-200 hover:bg-black-300 py-1 px-3 rounded mb-4">Generează aleator</button>
+        <div><label class="font-mono">Baze:</label><input id="bob-bases" type="text" class="w-full font-mono p-1 border rounded" maxlength="${gameState.keyLength}"></div>
+        <button id="bob-submit-btn" class="mt-4 w-full bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded">Măsoară Qubiți</button>
+    `;
+    document.getElementById('bob-random-btn').onclick = () => {
+        document.getElementById('bob-bases').value = generateRandomString(gameState.keyLength);
+    };
+    document.getElementById('bob-submit-btn').onclick = submitBobData;
+}
+
+function renderBobDone() {
+    const dash = document.getElementById('bob-dashboard');
+    dash.innerHTML = `
+        <h4 class="text-xl font-bold text-green-700 mb-3">Panou Bob</h4>
+        <div class="text-sm space-y-2 break-all">
+            <p><strong>Baze folosite:</strong> <code class="font-mono bg-black-100 p-1 rounded">${gameState.bob.bases}</code></p>
+            <p><strong>Biți măsurați:</strong> <code class="font-mono bg-black-100 p-1 rounded">${gameState.bob.measuredBits}</code></p>
+        </div>
+    `;
+}
+
+function renderResults() {
+    const container = document.getElementById('sifting-results');
+    const qberPercent = (gameState.qber * 100).toFixed(2);
+    const verdictClass = gameState.qber > 0.1 ? 'text-red-600 bg-red-100 border-red-500' : 'text-green-600 bg-green-100 border-green-500';
+    const verdictText = gameState.qber > 0.1 ? 'SPIONAJ DETECTAT! Cheia este aruncată.' : 'Canalul este considerat sigur. Cheia este validă.';
+    
+    let eveInfo = '';
+    if (gameState.includeEve) {
+        eveInfo = `
+            <div class="col-span-1"><strong>Baze Eve:</strong></div><div class="col-span-3 font-mono">${gameState.eve.bases}</div>
+            <div class="col-span-1"><strong>Biți Eve:</strong></div><div class="col-span-3 font-mono">${gameState.eve.measuredBits}</div>
+        `;
+    }
+
+    container.innerHTML = `
+        <h4 class="text-2xl font-bold mb-4 text-center">Rezultate Finale</h4>
+        <div class="grid grid-cols-4 gap-x-4 gap-y-2 text-sm break-all mb-4 bg-black-50 p-3 rounded-lg">
+            <div class="col-span-1"><strong>Biți Alice:</strong></div><div class="col-span-3 font-mono">${gameState.alice.bits}</div>
+            <div class="col-span-1"><strong>Baze Alice:</strong></div><div class="col-span-3 font-mono">${gameState.alice.bases}</div>
+            ${eveInfo}
+            <div class="col-span-1"><strong>Baze Bob:</strong></div><div class="col-span-3 font-mono">${gameState.bob.bases}</div>
+            <div class="col-span-1"><strong>Potrivire Baze:</strong></div><div class="col-span-3 font-mono">${gameState.sifted.matchString}</div>
+        </div>
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h5 class="font-bold text-blue-800">Cheie Cernută Alice</h5>
+                <p class="font-mono text-lg break-all">${gameState.sifted.aliceKey}</p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg">
+                <h5 class="font-bold text-green-800">Cheie Cernută Bob</h5>
+                <p class="font-mono text-lg break-all">${gameState.sifted.bobKey}</p>
+            </div>
+        </div>
+        <div class="mt-4 text-center">
+             <p><strong>Rata de Eroare Cuantică (QBER): <span class="font-bold">${qberPercent}%</span></strong></p>
+             <p class="mt-2 text-lg font-bold p-3 rounded-lg ${verdictClass}">${verdictText}</p>
+        </div>
+    `;
+}
+
+// --- Data Submission Functions ---
+function submitAliceData() {
+    const bits = document.getElementById('alice-bits').value;
+    const bases = document.getElementById('alice-bases').value;
+    if (bits.length !== gameState.keyLength || bases.length !== gameState.keyLength || !/^[01]+$/.test(bits) || !/^[01]+$/.test(bases)) {
+        showNotification(`Trebuie să introduci exact ${gameState.keyLength} biți și baze (doar 0 sau 1).`);
+        return;
+    }
+    
+    gameState.alice = { bits, bases };
+    gameState.state = gameState.includeEve ? 'awaiting_interception' : 'awaiting_measurement';
+    renderGame();
+}
+
+function submitEveData() {
+    const eveBases = document.getElementById('eve-bases').value;
+    if (eveBases.length !== gameState.keyLength || !/^[01]+$/.test(eveBases)) {
+        showNotification(`Eve, trebuie să introduci exact ${gameState.keyLength} baze (doar 0 sau 1).`);
+        return;
+    }
+    
+    const aliceQubits = { bits: gameState.alice.bits, bases: gameState.alice.bases };
+    const eveMeasuredBits = simulateMeasurement(aliceQubits, eveBases);
+    
+    gameState.eve = { bases: eveBases, measuredBits: eveMeasuredBits };
+    gameState.state = 'awaiting_measurement';
+    renderGame();
+}
+
+function submitBobData() {
+    const bobBases = document.getElementById('bob-bases').value;
+    if (bobBases.length !== gameState.keyLength || !/^[01]+$/.test(bobBases)) {
+        showNotification(`Bob, trebuie să introduci exact ${gameState.keyLength} baze (doar 0 sau 1).`);
+        return;
+    }
+
+    const incomingQubits = gameState.includeEve 
+        ? { bits: gameState.eve.measuredBits, bases: gameState.eve.bases }
+        : { bits: gameState.alice.bits, bases: gameState.alice.bases };
+    
+    const bobMeasuredBits = simulateMeasurement(incomingQubits, bobBases);
+    
+    gameState.bob = { bases: bobBases, measuredBits: bobMeasuredBits };
+    gameState.state = 'sifting';
+    renderGame();
+}
+
+// --- JS Simulation Logic ---
+function performSiftingAndFinish() {
+    const { keyLength, alice, bob } = gameState;
+    let aliceSifted = '';
+    let bobSifted = '';
+    let matchString = '';
+
+    for (let i = 0; i < keyLength; i++) {
+        if (alice.bases[i] === bob.bases[i]) {
+            aliceSifted += alice.bits[i];
+            bobSifted += bob.measuredBits[i];
+            matchString += '✓';
+        } else {
+            matchString += '✗';
+        }
+    }
+    
+    let mismatches = 0;
+    for (let i = 0; i < aliceSifted.length; i++) {
+        if (aliceSifted[i] !== bobSifted[i]) {
+            mismatches++;
+        }
+    }
+    
+    const qber = aliceSifted.length > 0 ? mismatches / aliceSifted.length : 0;
+    
+    gameState.sifted = {
+        aliceKey: aliceSifted,
+        bobKey: bobSifted,
+        matchString: matchString
+    };
+    gameState.qber = qber;
+    gameState.state = 'complete';
+}
+
+function simulateMeasurement(qubitsToSend, measurementBases) {
+    let measured = '';
+    for (let i = 0; i < qubitsToSend.bits.length; i++) {
+        if (qubitsToSend.bases[i] === measurementBases[i]) {
+            measured += qubitsToSend.bits[i];
+        } else {
+            measured += Math.random() < 0.5 ? '0' : '1';
+        }
+    }
+    return measured;
+}
+
+function generateRandomString(len) {
+    let s = '';
+    for (let i = 0; i < len; i++) {
+        s += Math.random() < 0.5 ? '0' : '1';
+    }
+    return s;
+}
+
+</script>
+{% endblock %}

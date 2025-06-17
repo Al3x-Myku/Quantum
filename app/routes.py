@@ -1,7 +1,7 @@
 from flask import render_template, jsonify, request, current_app
 from . import services
 
-# Get current app from context to register routes
+
 app = current_app
 
 @app.route('/')
@@ -29,7 +29,6 @@ def e91():
     """Renders the E91 simulation page."""
     return render_template('e91.html')
 
-# --- API Routes ---
 
 @app.route('/api/run_bb84', methods=['POST'])
 def api_run_bb84():
@@ -39,7 +38,6 @@ def api_run_bb84():
         key_length = int(data.get('key_length', 32))
         with_eve = data.get('with_eve', False)
         
-        # Clamp key_length to a reasonable range to prevent server overload
         if not 8 <= key_length <= 128:
              return jsonify(error="Key length must be between 8 and 128."), 400
 

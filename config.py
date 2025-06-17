@@ -12,10 +12,10 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     """Production configuration."""
-    # Production specific settings
+    
     pass
 
-# A dictionary to access config classes by name
+
 config_by_name = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,

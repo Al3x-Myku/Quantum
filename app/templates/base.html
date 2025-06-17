@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}QKD Explorer{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+        .card { box-shadow: 0 4px 8px rgba(0,0,0,.1); border-radius: .5rem; border: none; }
+        .btn-primary {
+            background-image: linear-gradient(45deg, #0d6efd, #0d6efd);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .nav-link.active {
+             font-weight: bold;
+             color: #fff !important;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/"><i class="bi bi-shield-lock-fill"></i> QKD Explorer</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link {% if request.path == '/bloch' %}active{% endif %}" href="/bloch">Sfera Bloch</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/bb84' %}active{% endif %}" href="/bb84">BB84 (fără spion)</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/bb84_eve' %}active{% endif %}" href="/bb84_eve">BB84 (cu spion)</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/e91' %}active{% endif %}" href="/e91">E91 (Entanglement)</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

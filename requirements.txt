@@ -1,0 +1,4 @@
+Flask==2.2.2
+numpy==1.23.5
+qiskit==0.44.1
+qiskit-aer==0.12.2

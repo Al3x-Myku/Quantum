@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Simulare BB84 (cu spion) - QKD Explorer{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <h2 class="mb-3">Protocolul BB84 (cu spion)</h2>
+    <p>În această simulare, un spion (Eve) interceptează qubiții trimiși de Alice, îi măsoară folosind baze alese aleatoriu, și apoi retrimite qubiți noi către Bob pe baza rezultatelor ei. Acest act de măsurare perturbă stările cuantice originale. Alice și Bob pot detecta prezența lui Eve observând o Rată de Eroare Cuantică (QBER) semnificativ mai mare decât zero după ce își compară o parte din cheia lor cernută.</p>
+    
+    <div class="row g-3 align-items-center mb-3">
+      <div class="col-auto">
+        <label for="keyLength" class="col-form-label">Lungime cheie (8-128):</label>
+      </div>
+      <div class="col-auto">
+        <input type="number" id="keyLength" class="form-control" value="32" min="8" max="128">
+      </div>
+      <div class="col-auto">
+        <button id="run-simulation" class="btn btn-primary">Rulează Simulare</button>
+      </div>
+    </div>
+    
+    <div id="results-container">
+        <div id="spinner" class="d-none text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <pre id="log-output" class="bg-light p-3 rounded" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('run-simulation').addEventListener('click', async () => {
+    const button = document.getElementById('run-simulation');
+    const spinner = document.getElementById('spinner');
+    const logOutput = document.getElementById('log-output');
+    const keyLengthInput = document.getElementById('keyLength');
+
+    button.disabled = true;
+    spinner.classList.remove('d-none');
+    logOutput.innerHTML = '';
+    
+    const keyLength = parseInt(keyLengthInput.value);
+
+    try {
+        const response = await fetch('/api/run_bb84', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                with_eve: true,
+                key_length: keyLength
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        logOutput.innerHTML = data.log;
+
+    } catch (error) {
+        logOutput.innerHTML = `<span class="text-danger">A apărut o eroare: ${error.message}</span>`;
+    } finally {
+        button.disabled = false;
+        spinner.classList.add('d-none');
+    }
+});
+</script>
+{% endblock %}
+

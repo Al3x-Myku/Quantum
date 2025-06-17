@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Bun Venit - QKD Explorer{% endblock %}
+{% block content %}
+<div class="px-4 py-5 my-5 text-center">
+    <h1 class="display-5 fw-bold">Bun Venit la QKD Explorer</h1>
+    <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4">O aplicație web interactivă pentru a explora conceptele de bază ale Distribuției Cuantice a Cheilor (Quantum Key Distribution). Navigați folosind meniul de mai sus pentru a experimenta cu diferite protocoale și vizualizări.</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a href="/bloch" class="btn btn-primary btn-lg px-4 gap-3">Începe cu Sfera Bloch</a>
+            <a href="/bb84" class="btn btn-outline-secondary btn-lg px-4">Simulează BB84</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

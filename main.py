@@ -1,7 +1,7 @@
 import numpy as np
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.quantum_info import Statevector
-from qiskit.visualization import plot_bloch_multivector
+from qiskit.visualization import plot_bloch_vector
 from qiskit_aer import AerSimulator
 import matplotlib.pyplot as plt
 import warnings
@@ -10,29 +10,26 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 def visualize_qubit_states():
     print("\nSe generează vizualizarea stărilor de bază ale qubitului...")
-    
-    qc_0 = QuantumCircuit(1)
 
+    qc_0 = QuantumCircuit(1)
     qc_1 = QuantumCircuit(1)
     qc_1.x(0)
-
     qc_plus = QuantumCircuit(1)
     qc_plus.h(0)
-
     qc_minus = QuantumCircuit(1)
     qc_minus.x(0)
     qc_minus.h(0)
 
-    state_0 = Statevector(qc_0)
-    state_1 = Statevector(qc_1)
-    state_plus = Statevector(qc_plus)
-    state_minus = Statevector(qc_minus)
+    states = [Statevector(qc_0), Statevector(qc_1), Statevector(qc_plus), Statevector(qc_minus)]
+    titles = ['Starea |0⟩', 'Starea |1⟩', 'Starea |+⟩', 'Starea |−⟩']
 
-    fig = plot_bloch_multivector(
-        [state_0, state_1, state_plus, state_minus],
-        title=['Starea |0⟩', 'Starea |1⟩', 'Starea |+⟩', 'Starea |−⟩']
-    )
-    
+    fig, axes = plt.subplots(2, 2, figsize=(8, 8), subplot_kw={'projection': '3d'})
+    axes_flat = axes.flatten()
+
+    for i, (state, title) in enumerate(zip(states, titles)):
+        plot_bloch_vector(state.data, title=title, ax=axes_flat[i])
+
+    plt.tight_layout()
     try:
         fig.savefig("bloch_sphere_states.png")
         print("Figura 'bloch_sphere_states.png' a fost salvată.")
@@ -40,7 +37,6 @@ def visualize_qubit_states():
     except Exception as e:
         print(f"Nu s-a putut afișa sau salva graficul: {e}")
         print("Este posibil să rulați într-un mediu fără interfață grafică.")
-
 
 def create_alice_circuit(bits, bases):
     n = len(bits)
@@ -55,14 +51,14 @@ def create_alice_circuit(bits, bases):
 
 def measure_message(qc, bases):
     n = qc.num_qubits
-
     if not qc.cregs:
-        qc.add_register(QuantumCircuit(n).cregs[0])
+        cr = ClassicalRegister(n)
+        qc.add_register(cr)
 
     for i in range(n):
         if bases[i] == 1:
             qc.h(i)
-    
+
     qc.measure(range(n), range(n))
     return qc
 
@@ -72,16 +68,16 @@ def run_e91_demo():
     qc.h(0)
     qc.cx(0, 1)
     qc.barrier()
-    
+
     qc.measure([0, 1], [0, 1])
-    
+
     print("Circuit E91 (stare Bell + măsurare):")
     print(qc)
-    
+
     simulator = AerSimulator()
     result = simulator.run(qc, shots=1024).result()
     counts = result.get_counts()
-    
+
     print("\nRezultatele măsurătorilor (1024 de rulări):")
     print(counts)
     print("Observație: Rezultatele sunt întotdeauna corelate ('00' sau '11').")
@@ -90,19 +86,19 @@ def run_e91_demo():
 def run_bb84_simulation(with_eve=False):
     KEY_LENGTH = 32
     print(f"\n--- Rulare simulare BB84 {'CU' if with_eve else 'FĂRĂ'} spion ---")
-    
+
     alice_bits = np.random.randint(2, size=KEY_LENGTH)
     alice_bases = np.random.randint(2, size=KEY_LENGTH)
     print(f"Biții originali ai lui Alice: {''.join(map(str, alice_bits))}")
     print(f"Bazele alese de Alice:       {''.join(map(str, alice_bases))}")
-    
+
     if not with_eve:
         qc = create_alice_circuit(list(alice_bits), list(alice_bases))
     else:
         print("\nALERTĂ: Eve interceptează canalul cuantic!")
         eve_bases = np.random.randint(2, size=KEY_LENGTH)
         eve_measured_bits = []
-        
+
         simulator = AerSimulator()
         for i in range(KEY_LENGTH):
             temp_qc = QuantumCircuit(1, 1)
@@ -110,14 +106,14 @@ def run_bb84_simulation(with_eve=False):
             if alice_bases[i] == 1: temp_qc.h(0)
             if eve_bases[i] == 1: temp_qc.h(0)
             temp_qc.measure(0, 0)
-            
+
             result = simulator.run(temp_qc, shots=1).result()
             measured_bit = int(list(result.get_counts().keys())[0])
             eve_measured_bits.append(measured_bit)
-        
+
         print(f"Bazele alese de Eve:         {''.join(map(str, eve_bases))}")
         print(f"Biții măsurați de Eve:       {''.join(map(str, eve_measured_bits))}")
-        
+
         qc = create_alice_circuit(eve_measured_bits, list(eve_bases))
 
     bob_bases = np.random.randint(2, size=KEY_LENGTH)
@@ -126,19 +122,21 @@ def run_bb84_simulation(with_eve=False):
 
     simulator = AerSimulator()
     result = simulator.run(full_qc, shots=1).result()
-    
 
     counts = result.get_counts()
+    if not counts:
+        print("EROARE: Simularea nu a produs niciun rezultat. Se anulează.")
+        return
+
     bob_measured_bits_str = list(counts.keys())[0]
-    
-  
+
     padded_str = bob_measured_bits_str.zfill(KEY_LENGTH)
     reversed_str = padded_str[::-1]
     bob_measured_bits = [int(bit) for bit in reversed_str]
 
     alice_key = []
     bob_key = []
-    
+
     print("\n--- Procesul de cernere (compararea bazelor) ---")
     match_indices = []
     for i in range(KEY_LENGTH):
@@ -168,7 +166,6 @@ def run_bb84_simulation(with_eve=False):
         print("\nVERDICT: QBER depășește pragul de securitate! SPIONAJ DETECTAT! Cheia este aruncată.")
     else:
         print("\nVERDICT: Canalul este considerat sigur. Cheia este validă.")
-
 
 def main_menu():
     while True:

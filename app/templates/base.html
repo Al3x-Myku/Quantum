@@ -7,7 +7,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f8f9fa; }
+        html, body {
+            /* Gradient foarte închis: aproape negru cu accente mov */
+            background: linear-gradient(135deg, #0a0613 0%, #181028 60%, #1e193a 100%) !important;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
         .navbar { box-shadow: 0 2px 4px rgba(0,0,0,.1); }
         .card { box-shadow: 0 4px 8px rgba(0,0,0,.1); border-radius: .5rem; border: none; }
         .btn-primary {
@@ -26,20 +32,24 @@
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+<nav class="navbar navbar-expand-lg mb-4"
+     style="background: linear-gradient(135deg, #181028 0%, #312254 60%, #1e193a 100%);
+            border-radius: 1.5rem; color: #e0e7ff; box-shadow: 0 4px 32px #a78bfa33;">
   <div class="container-fluid">
-    <a class="navbar-brand" href="/"><i class="bi bi-shield-lock-fill"></i> QKD Explorer</a>
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/" style="color: #a78bfa; font-size: 2rem; font-weight: 700; letter-spacing: 1px;">
+      <i class="bi bi-shield-lock-fill" style="font-size: 2.2rem; color: #a78bfa;"></i>
+      QKD Explorer
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link {% if request.path == '/bloch' %}active{% endif %}" href="/bloch">Sfera Bloch</a></li>
-        <li class="nav-item"><a class="nav-link {% if request.path == '/bb84' %}active{% endif %}" href="/bb84">BB84 (fără spion)</a></li>
-        <li class="nav-item"><a class="nav-link {% if request.path == '/bb84_eve' %}active{% endif %}" href="/bb84_eve">BB84 (cu spion)</a></li>
-        <li class="nav-item"><a class="nav-link {% if request.path == '/interactive_bb84' %}active{% endif %}" href="/interactive_bb84">interactive-bb84</a></li>
-                <li class="nav-item"><a class="nav-link {% if request.path == '/e91' %}active{% endif %}" href="/e91">E91 (Entanglement)</a></li>
-
+        <li class="nav-item"><a class="nav-link {% if request.path == '/bloch' %}active{% endif %}" href="/bloch" style="color:#818cf8;">Sfera Bloch</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/bb84' %}active{% endif %}" href="/bb84" style="color:#e0e7ff;">BB84 (fără spion)</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/bb84_eve' %}active{% endif %}" href="/bb84_eve" style="color:#e0e7ff;">BB84 (cu spion)</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/interactive_bb84' %}active{% endif %}" href="/interactive_bb84" style="color:#e0e7ff;">interactive-bb84</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/e91' %}active{% endif %}" href="/e91" style="color:#e0e7ff;">E91 (Entanglement)</a></li>
       </ul>
     </div>
   </div>

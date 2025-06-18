@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Sfera Bloch - QKD Explorer{% endblock %}
+
+{% block content %}
+<div class="card p-4 shadow-lg"
+     style="background: linear-gradient(135deg, #181028 0%, #312254 60%, #1e193a 100%); border-radius: 1.5rem; color: #e0e7ff;">
+    <h2 class="mb-3" style="color:#a78bfa;">Sfera Bloch interactivă</h2>
+    <p style="color:#c4b5fd;">Sfera Bloch este o reprezentare geometrică a stării unui sistem cuantic cu două niveluri (un qubit). Punctele de pe suprafața sferei corespund stărilor pure ale qubitului. Modificați unghiurile Theta (polar) și Phi (azimutal) pentru a vedea cum se schimbă vectorul de stare și probabilitățile de măsurare în diferite baze.</p>
+    <div id="bloch-plot" style="width: 100%; height: 500px; background: #232136; border-radius: 1rem; box-shadow: 0 4px 32px #a78bfa33;"></div>
+    <div class="row mt-4">
+      <div class="col-md-6 mb-3">
+        <label for="theta" class="form-label" style="color:#a78bfa;">Theta (polar, 0-π): <span id="theta-val" style="color:#f472b6;">1.57</span></label>
+        <input type="range" min="0" max="3.14" step="0.01" value="1.57" class="form-range" id="theta" style="accent-color:#a78bfa;">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label for="phi" class="form-label" style="color:#a78bfa;">Phi (azimut, 0-2π): <span id="phi-val" style="color:#f472b6;">0.00</span></label>
+        <input type="range" min="0" max="6.28" step="0.01" value="0.00" class="form-range" id="phi" style="accent-color:#a78bfa;">
+      </div>
+    </div>
+    <div class="mt-3" style="font-size:1.1rem;">
+      <b style="color:#a78bfa;">Probabilitate |0⟩ (baza Z):</b> <span id="prob0" class="badge" style="background:#a78bfa;"></span><br>
+      <b style="color:#a78bfa;">Probabilitate |1⟩ (baza Z):</b> <span id="prob1" class="badge" style="background:#a78bfa;"></span><br>
+      <b style="color:#818cf8;">Probabilitate |+⟩ (baza X):</b> <span id="probplus" class="badge" style="background:#818cf8;"></span><br>
+      <b style="color:#818cf8;">Probabilitate |−⟩ (baza X):</b> <span id="probminus" class="badge" style="background:#818cf8;"></span>
+    </div>
+    <div class="mt-3 mb-3">
+      <button class="btn btn-outline-primary btn-sm" style="border-color:#a78bfa; color:#a78bfa;" onmouseover="this.style.background='#a78bfa';this.style.color='#18181b';" onmouseout="this.style.background='';this.style.color='#a78bfa';" onclick="setPreset('zero')">|0⟩ (Polul Nord)</button>
+      <button class="btn btn-outline-primary btn-sm" style="border-color:#a78bfa; color:#a78bfa;" onmouseover="this.style.background='#a78bfa';this.style.color='#18181b';" onmouseout="this.style.background='';this.style.color='#a78bfa';" onclick="setPreset('one')">|1⟩ (Polul Sud)</button>
+      <button class="btn btn-outline-primary btn-sm" style="border-color:#818cf8; color:#818cf8;" onmouseover="this.style.background='#818cf8';this.style.color='#18181b';" onmouseout="this.style.background='';this.style.color='#818cf8';" onclick="setPreset('plus')">|+⟩ (Axa X+)</button>
+      <button class="btn btn-outline-primary btn-sm" style="border-color:#818cf8; color:#818cf8;" onmouseover="this.style.background='#818cf8';this.style.color='#18181b';" onmouseout="this.style.background='';this.style.color='#818cf8';" onclick="setPreset('minus')">|−⟩ (Axa X-)</button>
+      <button class="btn btn-outline-info btn-sm" style="border-color:#f472b6; color:#f472b6;" onmouseover="this.style.background='#f472b6';this.style.color:'#18181b';" onmouseout="this.style.background='';this.style.color='#f472b6';" onclick="setPreset('random')">Aleator</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+function getBlochVector(theta, phi) {
+    return [
+        Math.sin(theta) * Math.cos(phi),
+        Math.sin(theta) * Math.sin(phi),
+        Math.cos(theta)
+    ];
+}
+function linspace(a, b, n) {
+    let arr = [];
+    let step = (b - a) / (n - 1);
+    for (let i = 0; i < n; i++) arr.push(a + step * i);
+    return arr;
+}
+function makeCircle3D(radius, z, n, color) {
+    let t = linspace(0, 2 * Math.PI, n);
+    let r = Math.sqrt(1 - z * z);
+    return {
+        type: 'scatter3d', mode: 'lines',
+        x: t.map(a => r * Math.cos(a)),
+        y: t.map(a => r * Math.sin(a)),
+        z: t.map(_ => z),
+        line: {color: color, width: 1}, showlegend: false
+    };
+}
+function makeMeridian3D(radius, phi, n, color) {
+    let t = linspace(0, Math.PI, n);
+    return {
+        type: 'scatter3d', mode: 'lines',
+        x: t.map(theta => radius * Math.sin(theta) * Math.cos(phi)),
+        y: t.map(theta => radius * Math.sin(theta) * Math.sin(phi)),
+        z: t.map(theta => radius * Math.cos(theta)),
+        line: {color: color, width: 1}, showlegend: false
+    };
+}
+function updateBloch(theta, phi) {
+    let [x, y, z] = getBlochVector(theta, phi);
+
+    let circles = [];
+    for (let lat = -0.75; lat <= 0.75; lat += 0.25) {
+        circles.push(makeCircle3D(1, lat, 100, '#a78bfa'));
+    }
+    circles.push(makeCircle3D(1, 0, 100, '#818cf8')); // Equator
+
+    for (let i = 0; i < 8; i++) {
+        let phi_m = i * Math.PI / 4;
+        circles.push(makeMeridian3D(1, phi_m, 100, i % 2 === 0 ? '#818cf8' : '#a78bfa'));
+    }
+
+    let axes = [
+        {type: 'scatter3d', mode: 'lines', x: [-1.2, 1.2], y: [0, 0], z: [0, 0], line: {color: '#f472b6', width: 3}, showlegend: false},
+        {type: 'scatter3d', mode: 'lines', x: [0, 0], y: [-1.2, 1.2], z: [0, 0], line: {color: '#a78bfa', width: 3}, showlegend: false},
+        {type: 'scatter3d', mode: 'lines', x: [0, 0], y: [0, 0], z: [-1.2, 1.2], line: {color: '#818cf8', width: 3}, showlegend: false}
+    ];
+    
+    let stateVector = {
+        type: 'scatter3d', mode: 'lines+markers+text',
+        x: [0, x], y: [0, y], z: [0, z],
+        line: {width: 8, color: '#f472b6'}, 
+        marker: {size: 8, color: '#f472b6'}, 
+        name: 'Qubit',
+        text: [``, `x=${x.toFixed(2)}<br>y=${y.toFixed(2)}<br>z=${z.toFixed(2)}`],
+        textposition: ['top right', 'top right'],
+        textfont: {color: '#f472b6', size: 16}
+    };
+
+    let data = [...circles, ...axes, stateVector];
+    
+    let layout = {
+        paper_bgcolor: "#232136",
+        plot_bgcolor: "#232136",
+        font: {color: "#e0e7ff"},
+        title: {text: 'Sfera Bloch', font: {color: "#a78bfa", size: 22}},
+        scene: {
+            xaxis: {title: 'X (|+⟩,|-⟩)', showspikes: false, zeroline: false, showgrid: false, range: [-1.2, 1.2], color: "#a78bfa"},
+            yaxis: {title: 'Y (|i⟩,|-i⟩)', showspikes: false, zeroline: false, showgrid: false, range: [-1.2, 1.2], color: "#a78bfa"},
+            zaxis: {title: 'Z (|0⟩,|1⟩)', showspikes: false, zeroline: false, showgrid: false, range: [-1.2, 1.2], color: "#a78bfa"},
+            aspectmode: 'cube',
+            camera: { eye: { x: 1.2, y: 1.2, z: 0.8 } }
+        },
+        margin: {l:0, r:0, b:0, t:40}, showlegend: false
+    };
+
+    Plotly.newPlot('bloch-plot', data, layout, {responsive: true, displayModeBar: false});
+
+    let prob0 = Math.pow(Math.cos(theta/2),2);
+    let prob1 = Math.pow(Math.sin(theta/2),2);
+    let prob_plus = 0.5 * (1 + Math.sin(theta)*Math.cos(phi));
+    let prob_minus = 0.5 * (1 - Math.sin(theta)*Math.cos(phi));
+
+    document.getElementById('prob0').innerText = prob0.toFixed(3);
+    document.getElementById('prob1').innerText = prob1.toFixed(3);
+    document.getElementById('probplus').innerText = prob_plus.toFixed(3);
+    document.getElementById('probminus').innerText = prob_minus.toFixed(3);
+}
+function setPreset(type) {
+    let theta, phi;
+    if(type === 'zero') { theta = 0; phi = 0; }
+    else if(type === 'one') { theta = Math.PI; phi = 0; }
+    else if(type === 'plus') { theta = Math.PI/2; phi = 0; }
+    else if(type === 'minus') { theta = Math.PI/2; phi = Math.PI; }
+    else if(type === 'random') {
+        theta = Math.random() * Math.PI;
+        phi = Math.random() * 2 * Math.PI;
+    }
+    document.getElementById('theta').value = theta;
+    document.getElementById('phi').value = phi;
+    document.getElementById('theta-val').innerText = theta.toFixed(2);
+    document.getElementById('phi-val').innerText = phi.toFixed(2);
+    updateBloch(theta, phi);
+}
+let theta_init = 1.57, phi_init = 0.00;
+document.getElementById('theta').addEventListener('input', function(e){
+    theta_init = parseFloat(e.target.value);
+    document.getElementById('theta-val').innerText = theta_init.toFixed(2);
+    updateBloch(theta_init, phi_init);
+});
+document.getElementById('phi').addEventListener('input', function(e){
+    phi_init = parseFloat(e.target.value);
+    document.getElementById('phi-val').innerText = phi_init.toFixed(2);
+    updateBloch(theta_init, phi_init);
+});
+// Initial plot
+updateBloch(theta_init, phi_init);
+</script>
+{% endblock %}
+
+<style>
+body {
+  background: linear-gradient(135deg, #18181b 0%, #312e81 100%) !important;
+}
+#bloch-plot {
+  background: #232136 !important;
+}
+</style>

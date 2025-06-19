@@ -2,72 +2,355 @@
 {% block title %}Simulare BB84 (cu spion) - QKD Explorer{% endblock %}
 
 {% block content %}
-<div class="card p-4">
-    <h2 class="mb-3">Protocolul BB84 (cu spion)</h2>
-    <p>În această simulare, un spion (Eve) interceptează qubiții trimiși de Alice, îi măsoară folosind baze alese aleatoriu, și apoi retrimite qubiți noi către Bob pe baza rezultatelor ei. Acest act de măsurare perturbă stările cuantice originale. Alice și Bob pot detecta prezența lui Eve observând o Rată de Eroare Cuantică (QBER) semnificativ mai mare decât zero după ce își compară o parte din cheia lor cernută.</p>
+<!-- === MODAL PENTRU TUTORIAL (CU EVE) === -->
+<div class="modal fade" id="introModal" tabindex="-1" aria-labelledby="introModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: transparent; border: none;">
+            <div class="modal-body">
+                <div class="modal-slide active-slide">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                        </div>
+                        <div class="chat-bubble ms-3">
+                            <h5 style="color:#f87171;">Alertă de securitate!</h5>
+                            <p class="mb-0">De data asta, spioana <b>Eve</b> încearcă să intercepteze cheia. Să vedem cum o detectăm!</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-slide">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                        </div>
+                        <div class="chat-bubble ms-3">
+                            <p class="mb-0"><b>Interceptarea:</b> Eve se află pe canalul cuantic. Ea va măsura qubiții trimiși de Alice folosind propriile baze aleatorii.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-slide">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                        </div>
+                        <div class="chat-bubble ms-3">
+                            <p class="mb-0"><b>Perturbarea:</b> Măsurând, Eve distruge starea originală a qubiților. Ea trimite apoi qubiți noi lui Bob, bazați pe ce a măsurat ea.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-slide">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                           <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                        </div>
+                        <div class="chat-bubble ms-3">
+                            <p class="mb-0"><b>Detectarea:</b> Când Alice și Bob compară o parte din biții lor, vor observa erori (QBER > 0). Așa știu că cineva a ascultat! Să începem!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-end pt-0">
+                <button type="button" class="btn btn-sm btn-theme-secondary" id="modalPrevBtn" disabled>Anteriorul</button>
+                <button type="button" class="btn btn-sm btn-theme-primary" id="modalNextBtn">Următorul</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="card p-4 shadow-lg"
+     style="background: linear-gradient(135deg, #181028 0%, #312254 60%, #1e193a 100%); border-radius: 1.5rem; color: #e0e7ff;">
     
-    <div class="row g-3 align-items-center mb-3">
+    <h2 class="mb-3" style="color:#a78bfa;">Protocolul BB84 (cu spion)</h2>
+    <p>În această simulare, Eve interceptează qubiții, îi măsoară și îi retrimite. Acest act de spionaj introduce erori, pe care Alice și Bob le pot detecta calculând Rata de Eroare Cuantică (QBER). Alege un scenariu de atac de mai jos.</p>
+    
+    <div class="row g-3 align-items-center mb-4">
       <div class="col-auto">
-        <label for="keyLength" class="col-form-label">Lungime cheie (8-128):</label>
+        <label for="keyLength" class="col-form-label">Număr de qubiți:</label>
       </div>
       <div class="col-auto">
-        <input type="number" id="keyLength" class="form-control" value="32" min="8" max="128">
+        <input type="number" id="keyLength" class="form-control" value="24" min="8" max="64" style="background-color: #232136; color: #e0e7ff; border-color: #a78bfa;">
       </div>
       <div class="col-auto">
-        <button id="run-simulation" class="btn btn-primary">Rulează Simulare</button>
+        <button id="run-simulation" class="btn btn-theme-primary">Atac Aleatoriu</button>
+      </div>
+      <div class="col-auto">
+        <button id="run-eve-success" class="btn btn-theme-success">Atac Perfect (QBER=0%)</button>
+      </div>
+      <div class="col-auto">
+        <button id="run-eve-fail" class="btn btn-theme-fail">Atac Eșuat (QBER Mare)</button>
       </div>
     </div>
     
-    <div id="results-container">
-        <div id="spinner" class="d-none text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+    <div id="simulation-container" class="mt-4">
+        <div id="spinner" class="d-none text-center p-5">
+            <div class="spinner-border" role="status" style="width: 3rem; height: 3rem; color: #a78bfa !important;"></div>
         </div>
-        <pre id="log-output" class="bg-light p-3 rounded" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
+        
+        <div id="alice-panel" class="simulation-step"></div>
+        <div id="quantum-channel-1" class="simulation-step quantum-channel"></div>
+        <div id="eve-panel" class="simulation-step"></div>
+        <div id="quantum-channel-2" class="simulation-step quantum-channel"></div>
+        <div id="bob-panel" class="simulation-step"></div>
+        <div id="comparison-panel" class="simulation-step"></div>
+        <div id="result-panel" class="simulation-step"></div>
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script>
-document.getElementById('run-simulation').addEventListener('click', async () => {
-    const button = document.getElementById('run-simulation');
-    const spinner = document.getElementById('spinner');
-    const logOutput = document.getElementById('log-output');
-    const keyLengthInput = document.getElementById('keyLength');
+{% block styles %}
+<style>
+    .btn-theme-primary { background-color: transparent; border: 2px solid #a78bfa; color: #a78bfa; font-weight: 600; transition: all 0.3s ease; }
+    .btn-theme-primary:hover, .btn-theme-primary:disabled { background-color: #a78bfa; border-color: #a78bfa; color: #181028; }
+    .btn-theme-primary:disabled { opacity: 0.5; }
 
-    button.disabled = true;
-    spinner.classList.remove('d-none');
-    logOutput.innerHTML = '';
+    .btn-theme-secondary { background-color: transparent; border: 2px solid #c4b5fd; color: #c4b5fd; font-weight: 600; transition: all 0.3s ease; }
+    .btn-theme-secondary:hover { background-color: #c4b5fd; color: #181028; }
     
-    const keyLength = parseInt(keyLengthInput.value);
+    .btn-theme-success { background-color: transparent; border: 2px solid #4ade80; color: #4ade80; font-weight: 600; transition: all 0.3s ease; }
+    .btn-theme-success:hover, .btn-theme-success:disabled { background-color: #4ade80; border-color: #4ade80; color: #181028; }
+    .btn-theme-success:disabled { opacity: 0.5; }
 
-    try {
-        const response = await fetch('/api/run_bb84', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                with_eve: true,
-                key_length: keyLength
-            })
-        });
+    .btn-theme-fail { background-color: transparent; border: 2px solid #facc15; color: #facc15; font-weight: 600; transition: all 0.3s ease; }
+    .btn-theme-fail:hover, .btn-theme-fail:disabled { background-color: #facc15; border-color: #facc15; color: #181028; }
+    .btn-theme-fail:disabled { opacity: 0.5; }
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-        }
+    .modal-slide { display: none; animation: fadeIn 0.5s; }
+    .modal-slide.active-slide { display: block; }
+    .chat-bubble { position: relative; background: #312254; padding: 1rem; border-radius: 1rem; color: #e0e7ff; }
+    .chat-bubble::before { content: ''; position: absolute; top: 50%; left: -10px; transform: translateY(-50%); width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 10px solid #312254; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        const data = await response.json();
-        logOutput.innerHTML = data.log;
+    .simulation-step { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; margin-bottom: 2rem; }
+    .simulation-step.visible { opacity: 1; transform: translateY(0); }
+    .bit-stream { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .bit-card { width: 60px; height: 70px; border: 1px solid #312254; border-radius: 0.5rem; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #232136; transition: all 0.5s ease; }
+    .bit-value { font-family: 'Courier New', Courier, monospace; font-size: 1.5rem; font-weight: bold; }
+    .basis-icon { font-size: 1rem; }
+    .basis-rectilinear { color: #a78bfa; }
+    .basis-diagonal { color: #f472b6; }
 
-    } catch (error) {
-        logOutput.innerHTML = `<span class="text-danger">A apărut o eroare: ${error.message}</span>`;
-    } finally {
-        button.disabled = false;
-        spinner.classList.add('d-none');
-    }
-});
-</script>
+    .comparison-card.match { border-color: #4ade80; background-color: #163828; }
+    .comparison-card.mismatch { border-color: #f87171; background-color: #451a1a; opacity: 0.4; }
+    .comparison-card.bit-error { opacity: 1; background-color: #451a1a; animation: pulse-red 1.5s infinite; }
+    @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 10px #f87171; } 50% { box-shadow: 0 0 0px #f87171; } }
+
+    .final-key { font-size: 1.2rem; font-family: 'Courier New', Courier, monospace; color: #4ade80; background-color: #181028; padding: 1rem; border-radius: 0.5rem; word-break: break-all; border: 1px solid #4ade80; }
+    
+    .quantum-channel { height: 40px; position: relative; background-image: linear-gradient(to right, #31225433, #818cf833, #31225433); border-radius: 20px; margin-top: -1rem; margin-bottom: 1rem; }
+    .photon { position: absolute; top: 50%; left: 20px; transform: translateY(-50%); background-color: #f472b6; color: #181028; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1rem; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 10px #f472b6; opacity: 0; animation: travel 1.5s ease-in-out forwards; }
+    @keyframes travel { 0% { left: 20px; opacity: 1; } 100% { left: calc(100% - 40px); opacity: 0; } }
+    
+    .results-alert { padding: 1rem; margin-top: 1rem; border-radius: 0.75rem; border: 1px solid transparent; }
+    .results-alert.alert-success { color: #dcfce7 !important; background-color: #16653450; border-color: #4ade80; }
+    .results-alert.alert-danger { color: #fecaca !important; background-color: #991b1b50; border-color: #f87171; }
+</style>
 {% endblock %}
 
+{% block scripts %}
+<script>
+const sleep = ms => new Promise(res => setTimeout(res, ms));
+
+function getSiftedKeyAndQber(length, alice_bits, alice_bases, bob_bases, bob_results) {
+    const sifted_key = [];
+    let errors = 0;
+    let matching_bases_count = 0;
+    for (let i = 0; i < length; i++) {
+        if (alice_bases[i] === bob_bases[i]) {
+            matching_bases_count++;
+            sifted_key.push(alice_bits[i]);
+            if (alice_bits[i] !== bob_results[i]) {
+                errors++;
+            }
+        }
+    }
+    const qber = matching_bases_count > 0 ? errors / matching_bases_count : 0;
+    return { sifted_key, qber };
+}
+
+function runBB84SimulationWithEve(length) {
+    const alice_bits = Array.from({ length }, () => Math.round(Math.random()));
+    const alice_bases = Array.from({ length }, () => (Math.random() < 0.5 ? '+' : 'x'));
+    const eve_bases = Array.from({ length }, () => (Math.random() < 0.5 ? '+' : 'x'));
+    const eve_measured_bits = alice_bits.map((bit, i) => (alice_bases[i] === eve_bases[i]) ? bit : Math.round(Math.random()));
+    const bob_bases = Array.from({ length }, () => (Math.random() < 0.5 ? '+' : 'x'));
+    const bob_results = eve_measured_bits.map((bit, i) => (eve_bases[i] === bob_bases[i]) ? bit : Math.round(Math.random()));
+    const { sifted_key, qber } = getSiftedKeyAndQber(length, alice_bits, alice_bases, bob_bases, bob_results);
+    return { alice_bits, alice_bases, eve_bases, eve_measured_bits, bob_bases, bob_results, sifted_key, qber };
+}
+
+function runBB84SimulationEveSuccess(length) {
+    const alice_bits = Array.from({ length }, () => Math.round(Math.random()));
+    const alice_bases = Array.from({ length }, () => (Math.random() < 0.5 ? '+' : 'x'));
+    const eve_bases = [...alice_bases];
+    const eve_measured_bits = [...alice_bits];
+    const bob_bases = Array.from({ length }, () => (Math.random() < 0.5 ? '+' : 'x'));
+    const bob_results = eve_measured_bits.map((bit, i) => (eve_bases[i] === bob_bases[i]) ? bit : Math.round(Math.random()));
+    const { sifted_key, qber } = getSiftedKeyAndQber(length, alice_bits, alice_bases, bob_bases, bob_results);
+    return { alice_bits, alice_bases, eve_bases, eve_measured_bits, bob_bases, bob_results, sifted_key, qber };
+}
+
+function runBB84SimulationEveFail(length) {
+    const alice_bits = Array.from({ length }, () => Math.round(Math.random()));
+    const alice_bases = Array.from({ length }, () => (Math.random() < 0.5 ? '+' : 'x'));
+    const eve_bases = alice_bases.map(b => (b === '+' ? 'x' : '+'));
+    const eve_measured_bits = alice_bits.map(() => Math.round(Math.random()));
+    const bob_bases = Array.from({ length }, () => (Math.random() < 0.5 ? '+' : 'x'));
+    const bob_results = eve_measured_bits.map((bit, i) => (eve_bases[i] === bob_bases[i]) ? bit : Math.round(Math.random()));
+    const { sifted_key, qber } = getSiftedKeyAndQber(length, alice_bits, alice_bases, bob_bases, bob_results);
+    return { alice_bits, alice_bases, eve_bases, eve_measured_bits, bob_bases, bob_results, sifted_key, qber };
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!sessionStorage.getItem('bb84EveIntroSeen')) {
+        const introModal = new bootstrap.Modal(document.getElementById('introModal'));
+        const slides = document.querySelectorAll('.modal-slide');
+        const nextBtn = document.getElementById('modalNextBtn');
+        const prevBtn = document.getElementById('modalPrevBtn');
+        let currentSlide = 0;
+        const showSlide = (index) => {
+            slides.forEach((slide, i) => slide.classList.toggle('active-slide', i === index));
+            prevBtn.disabled = index === 0;
+            nextBtn.textContent = (index === slides.length - 1) ? 'Începe!' : 'Următorul';
+        };
+        nextBtn.addEventListener('click', () => {
+            currentSlide++;
+            if (currentSlide >= slides.length) {
+                sessionStorage.setItem('bb84EveIntroSeen', 'true');
+                introModal.hide();
+            } else { showSlide(currentSlide); }
+        });
+        prevBtn.addEventListener('click', () => { if (currentSlide > 0) showSlide(--currentSlide); });
+        introModal.show();
+    }
+});
+
+const handleSimulationRun = async (simulationFunction) => {
+    const buttons = [
+        document.getElementById('run-simulation'),
+        document.getElementById('run-eve-success'),
+        document.getElementById('run-eve-fail')
+    ];
+    const spinner = document.getElementById('spinner');
+    const keyLengthInput = document.getElementById('keyLength');
+    const panels = {
+        alice: document.getElementById('alice-panel'),
+        eve: document.getElementById('eve-panel'),
+        bob: document.getElementById('bob-panel'),
+        comparison: document.getElementById('comparison-panel'),
+        result: document.getElementById('result-panel'),
+        channel1: document.getElementById('quantum-channel-1'),
+        channel2: document.getElementById('quantum-channel-2'),
+    };
+
+    buttons.forEach(btn => btn.disabled = true);
+    spinner.classList.remove('d-none');
+    Object.values(panels).forEach(p => { p.innerHTML = ''; p.classList.remove('visible'); });
+
+    try {
+        const keyLength = parseInt(keyLengthInput.value);
+        if (isNaN(keyLength) || keyLength < 8 || keyLength > 64) throw new Error("Numărul de qubiți trebuie să fie între 8 și 64.");
+        
+        await sleep(250);
+        const data = simulationFunction(keyLength);
+        spinner.classList.add('d-none');
+
+        displayPanel('alice', data.alice_bits, data.alice_bases, 'Alice trimite:');
+        await animateQuantumChannel(panels.channel1, data.alice_bits);
+        
+        displayPanel('eve', data.eve_measured_bits, data.eve_bases, 'Eve interceptează și măsoară:');
+        await animateQuantumChannel(panels.channel2, data.eve_measured_bits);
+
+        displayPanel('bob', data.bob_results, data.bob_bases, 'Bob primește și măsoară:');
+        await sleep(500);
+
+        displayComparison(data.alice_bits, data.alice_bases, data.bob_bases, data.bob_results);
+        await sleep(500);
+        
+        displayResult(data.sifted_key, data.qber);
+
+    } catch (error) {
+        spinner.classList.add('d-none');
+        panels.alice.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+        panels.alice.classList.add('visible');
+    } finally {
+        buttons.forEach(btn => btn.disabled = false);
+    }
+};
+
+document.getElementById('run-simulation').addEventListener('click', () => handleSimulationRun(runBB84SimulationWithEve));
+document.getElementById('run-eve-success').addEventListener('click', () => handleSimulationRun(runBB84SimulationEveSuccess));
+document.getElementById('run-eve-fail').addEventListener('click', () => handleSimulationRun(runBB84SimulationEveFail));
+
+
+function createBitCard(bit, basis, customClass = '') {
+    const basisClass = basis === '+' ? 'basis-rectilinear' : 'basis-diagonal';
+    const basisIcon = basis === '+' ? 'bi-plus-lg' : 'bi-x-lg';
+    return `<div class="bit-card ${customClass}"><div class="bit-value">${bit}</div><div class="basis-icon ${basisClass}"><i class="${basisIcon}"></i></div></div>`;
+}
+
+function displayPanel(panelId, bits, bases, title) {
+    const panel = document.getElementById(`${panelId}-panel`);
+    let html = `<h5>${title}</h5><div class="bit-stream">`;
+    // Asiguram ca 'bits' este un array inainte de a-l parcurge
+    const bitsArray = Array.isArray(bits) ? bits : String(bits).split('');
+    bitsArray.forEach((bit, i) => html += createBitCard(bit, bases[i]));
+    html += '</div>';
+    panel.innerHTML = html;
+    panel.classList.add('visible');
+}
+
+async function animateQuantumChannel(channel, bits) {
+    channel.classList.add('visible');
+    const bitsArray = Array.isArray(bits) ? bits : String(bits).split('');
+    for (const bit of bitsArray) {
+        const photon = document.createElement('div');
+        photon.className = 'photon';
+        photon.textContent = bit;
+        channel.appendChild(photon);
+        await sleep(50 + Math.random() * 50);
+    }
+    await sleep(1500);
+}
+
+function displayComparison(aliceBits, aliceBases, bobBases, bobResults) {
+    const panel = document.getElementById('comparison-panel');
+    let html = '<h5>Discuție publică și detectarea erorilor:</h5><div class="bit-stream">';
+    aliceBases.forEach((aBasis, i) => {
+        const bBasis = bobBases[i];
+        let matchClass = '';
+        if (aBasis === bBasis) {
+            matchClass = (aliceBits[i] == bobResults[i]) ? 'match' : 'mismatch bit-error';
+        } else {
+            matchClass = 'mismatch';
+        }
+        html += createBitCard(bobResults[i], bBasis, `comparison-card ${matchClass}`);
+    });
+    html += '</div>';
+    panel.innerHTML = html;
+    panel.classList.add('visible');
+}
+
+function displayResult(key, qber) {
+    const panel = document.getElementById('result-panel');
+    const qberPercentage = (qber * 100).toFixed(2);
+    const isSecure = qber < 0.1;
+    let html = `
+        <div class="results-container">
+            <h5>Rezultate finale:</h5>
+            <div class="p-3 rounded" style="background-color: #181028;">
+                <p class="mb-2">Cheia secretă (înainte de a renunța la ea din cauza spionului):</p>
+                <div class="final-key">${key.join('') || 'Niciun bit comun!'}</div>
+                <hr style="border-color: #312254;">
+                <p class="mb-0">Rata de Eroare Cuantică (QBER): <span style="color:${isSecure ? '#4ade80' : '#f87171'}; font-weight:bold;">${qberPercentage}%</span></p>
+                <div class="results-alert ${isSecure ? 'alert-success' : 'alert-danger'}"><b>Concluzie:</b> ${isSecure ? 'Prezența lui Eve nu poate fi confirmată (caz foarte norocos pentru Eve!).' : 'QBER este semnificativ mai mare de 0! Prezența lui Eve a fost detectată. Cheia este compromisă și trebuie aruncată.'}</div>
+            </div>
+        </div>
+    `;
+    panel.innerHTML = html;
+    panel.classList.add('visible');
+}
+
+</script>
+{% endblock %}

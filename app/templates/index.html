@@ -8,31 +8,11 @@
         <div class="row flex-lg-row align-items-center g-5 py-5">
             
             <div class="col-12 col-lg-6 d-flex justify-content-center">
-                <!-- Imaginea SVG a fost adaugata pentru a asigura un exemplu functional -->
-                <svg class="img-fluid" viewBox="0 0 700 500" xmlns="http://www.w3.org/2000/svg" role="img" preserveAspectRatio="xMidYMid slice" focusable="false">
-                    <defs>
-                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#818cf8;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f472b6;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <rect width="100%" height="100%" fill="none"></rect>
-                    <circle cx="150" cy="150" r="15" fill="url(#grad1)" />
-                    <circle cx="550" cy="350" r="20" fill="url(#grad1)" />
-                    <circle cx="200" cy="400" r="12" fill="url(#grad2)" />
-                    <circle cx="600" cy="100" r="18" fill="url(#grad2)" />
-                    <circle cx="370" cy="250" r="25" fill="#110d1e" stroke="url(#grad1)" stroke-width="3"/>
-                    <line x1="150" y1="150" x2="370" y2="250" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5,5" opacity="0.7"/>
-                    <line x1="370" y1="250" x2="550" y2="350" stroke="#c4b5fd" stroke-width="2" opacity="0.7"/>
-                    <line x1="370" y1="250" x2="600" y2="100" stroke="#c4b5fd" stroke-width="2" opacity="0.7"/>
-                    <line x1="200" y1="400" x2="370" y2="250" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5,5" opacity="0.7"/>
-                    <line x1="150" y1="150" x2="600" y2="100" stroke="#c4b5fd" stroke-width="1" opacity="0.4"/>
-                    <line x1="200" y1="400" x2="550" y2="350" stroke="#c4b5fd" stroke-width="1" opacity="0.4"/>
-                </svg>
+                <!-- MODIFICARE: Imaginea SVG a fost inlocuita cu GIF-ul tau -->
+                <img src="{{ url_for('static', filename='images/intro_box.gif') }}" 
+                     class="img-fluid" 
+                     alt="Animatie cuantica" 
+                     style="border-radius: 1.5rem; max-height: 400px;">
             </div>
 
             <div class="col-12 col-lg-6 text-center text-lg-start">
@@ -74,6 +54,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const leadElem = document.getElementById("type-lead");
     
     if (titleElem && leadElem) {
+        // Set lead text color to pale before typing
+        leadElem.style.color = "#3b3750";
         typeEffect(titleElem, "#f3f4f6", 18, function() {
             typeEffect(leadElem, "#e0e7ff", 6);
         });
@@ -94,14 +76,12 @@ document.addEventListener("DOMContentLoaded", function() {
     transform: translateY(0);
 }
 
-/* Am adaugat 'a.' pentru a creste specificitatea si a suprascrie Bootstrap */
 a.btn-landing:hover {
     transform: translateY(-3px);
     box-shadow: 0 4px 20px -5px var(--btn-glow-color);
-    color: #181028 !important; /* Culoare text la hover pentru ambele butoane */
+    color: #181028 !important;
 }
 
-/* Butonul principal (mov, outline) - SELECTOR CORECTAT */
 a.btn-custom-primary {
     --btn-glow-color: #a78bfa;
     background-color: transparent;
@@ -112,7 +92,6 @@ a.btn-custom-primary:hover {
     background-color: #a78bfa;
 }
 
-/* Butonul secundar (albastru, outline) - SELECTOR CORECTAT */
 a.btn-custom-secondary {
     --btn-glow-color: #818cf8;
     background-color: transparent;
@@ -124,8 +103,10 @@ a.btn-custom-secondary:hover {
     background-color: #818cf8;
 }
 
-#type-lead {
+/* Am eliminat regula care facea textul negru */
+/* #type-lead {
     color: #3b3750 !important;
-}
+} 
+*/
 </style>
 {% endblock %}

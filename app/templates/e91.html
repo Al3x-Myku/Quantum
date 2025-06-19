@@ -10,7 +10,7 @@
                 <div class="modal-slide active-slide">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                            <img src="{{ url_for('static', filename='images/yapper.gif') }}" alt="Yapper GIF" width="100">
                         </div>
                         <div class="chat-bubble ms-3">
                             <h5 style="color:#a78bfa;">Bun venit la Protocolul E91!</h5>
@@ -21,7 +21,7 @@
                 <div class="modal-slide">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                           <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                           <img src="{{ url_for('static', filename='images/yapper.gif') }}" alt="Yapper GIF" width="100">
                         </div>
                         <div class="chat-bubble ms-3">
                             <p class="mb-0">O sursă va emite perechi de particule "legate" magic. Orice măsori la o particulă, vei ști instantaneu și starea celeilalte, indiferent de distanță!</p>
@@ -31,7 +31,7 @@
                 <div class="modal-slide">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                           <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                           <img src="{{ url_for('static', filename='images/yapper.gif') }}" alt="Yapper GIF" width="100">
                         </div>
                         <div class="chat-bubble ms-3">
                             <p class="mb-0">Vom demonstra asta vizual și vom folosi <b>Testul Bell</b> pentru a dovedi că aceste corelații sunt pur cuantice. Apasă "Rulează" pentru a vedea magia!</p>
@@ -48,11 +48,9 @@
 </div>
 
 
-<div class="card p-4 shadow-lg"
-     style="background: linear-gradient(135deg, #181028 0%, #312254 60%, #1e193a 100%); border-radius: 1.5rem; color: #e0e7ff;">
+<div class="card p-4 shadow-lg">
     
     <h2 class="mb-3" style="color:#a78bfa;">Protocolul E91 (bazat pe Entanglement)</h2>
-    <!-- === TEXT TEORETIC ADĂUGAT === -->
     <p><b>Ce este Inseparabilitatea Cuantică (Entanglement)?</b> Este un fenomen în care două sau mai multe particule devin interconectate într-un mod în care starea uneia influențează instantaneu starea celeilalte, indiferent de distanța dintre ele. Albert Einstein a numit acest fenomen "acțiune înfricoșătoare la distanță". Dacă două particule sunt inseparabile și una este măsurată ca având spin "sus", cealaltă va avea instantaneu spin "jos".</p>
     <p><b>Cum funcționează E91?</b> Protocolul E91, propus de Artur Ekert în 1991, folosește aceste corelații perfecte. O sursă emite perechi de qubiți în stare de inseparabilitate (o stare Bell) către Alice și Bob. Când amândoi măsoară în aceeași bază, obțin rezultate perfect corelate, formând o cheie secretă. Orice tentativă de spionaj (măsurătoare) a lui Eve pe canal ar distruge această corelație delicată.</p>
     <p><b>Testul Bell:</b> Pentru a verifica dacă cineva a ascultat, Alice și Bob compară public o parte din rezultatele obținute folosind baze diferite. Dacă valoarea "S" din inegalitatea Bell-CHSH depășește 2, corelațiile sunt mai puternice decât ar permite fizica clasică, dovedind că starea de inseparabilitate este intactă și canalul este sigur.</p>
@@ -70,25 +68,31 @@
             <div class="row align-items-center text-center">
                 <div class="col-md-3">
                     <div id="alice-station" class="station">
-                        <i class="bi bi-person-fill station-icon"></i>
+                        <img src="{{ url_for('static', filename='images/alice.gif') }}" alt="Alice" class="player-gif">
                         <h5>Alice</h5>
                         <div id="alice-result" class="result-box">?</div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div id="e91-channel" class="channel">
-                        <div id="source" class="source"><i class="bi bi-stars"></i></div>
+                        <div id="source" class="source">
+                           <!-- Imaginea statica initiala -->
+                           <img src="{{ url_for('static', filename='images/stomper.png') }}" alt="Source">
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div id="bob-station" class="station">
-                        <i class="bi bi-person-fill station-icon"></i>
+                        <img src="{{ url_for('static', filename='images/bob.gif') }}" alt="Bob" class="player-gif">
                         <h5>Bob</h5>
                         <div id="bob-result" class="result-box">?</div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Panoul de Log/Algoritm -->
+        <div id="log-panel" class="simulation-step mt-4"></div>
         
         <div id="results-panel" class="simulation-step mt-4">
             <div class="row">
@@ -111,6 +115,7 @@
 
 {% block styles %}
 <style>
+    .card { color: #e0e7ff; }
     .btn-theme-primary { background-color: transparent; border: 2px solid #a78bfa; color: #a78bfa; font-weight: 600; transition: all 0.3s ease; }
     .btn-theme-primary:hover, .btn-theme-primary:disabled { background-color: #a78bfa; border-color: #a78bfa; color: #181028; }
     .btn-theme-primary:disabled { opacity: 0.5; }
@@ -126,26 +131,26 @@
     .simulation-step { opacity: 0; transition: opacity 0.5s ease-out; }
     .simulation-step.visible { opacity: 1; }
     
-    .station { background-color: #232136; padding: 1.5rem; border-radius: 1rem; border: 1px solid #312254; transition: all 0.3s ease; }
+    .station { background-color: #232136; padding: 1.5rem; border-radius: 1rem; border: 1px solid #312254; transition: all 0.3s ease; text-align: center; }
     .station.active { box-shadow: 0 0 20px #a78bfa; transform: scale(1.05); }
-    .station-icon { font-size: 3rem; color: #a78bfa; }
+    .player-gif { width: 100px; height: 100px; object-fit: contain; margin-bottom: 0.5rem; }
     .result-box { font-size: 2rem; font-weight: bold; margin-top: 1rem; background-color: #181028; padding: 0.5rem; border-radius: 0.5rem; min-height: 60px; display: flex; justify-content: center; align-items: center; }
     
     .channel { position: relative; height: 100px; width: 100%; }
-    .source { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; border-radius: 50%; background-color: #f472b6; color: #181028; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 0 15px #f472b6; }
+    .source { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+    .source img { width: 100%; height: auto; }
     
     .particle { position: absolute; top: 50%; left: 50%; width: 15px; height: 15px; background-color: #818cf8; border-radius: 50%; opacity: 0; transform: translate(-50%, -50%); }
-    .particle.alice { animation: travel-left 1.5s ease-out forwards; }
-    .particle.bob { animation: travel-right 1.5s ease-out forwards; }
+    .particle.alice { animation: travel-left 0.8s ease-out forwards; }
+    .particle.bob { animation: travel-right 0.8s ease-out forwards; }
 
-    @keyframes travel-left {
-        0% { transform: translate(-50%, -50%); opacity: 1; }
-        100% { transform: translate(calc(-50vw + 150px), -50%); opacity: 0;}
-    }
-    @keyframes travel-right {
-        0% { transform: translate(-50%, -50%); opacity: 1; }
-        100% { transform: translate(calc(50vw - 150px), -50%); opacity: 0; }
-    }
+    @keyframes travel-left { 0% { transform: translate(-50%, -50%); opacity: 1; } 100% { transform: translate(calc(-50vw + 160px), -50%); opacity: 0;} }
+    @keyframes travel-right { 0% { transform: translate(-50%, -50%); opacity: 1; } 100% { transform: translate(calc(50vw - 160px), -50%); opacity: 0; } }
+
+    #log-panel { background-color: #232136; border-radius: 1rem; padding: 1rem; max-height: 200px; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; }
+    .log-entry { margin-bottom: 0.5rem; border-left: 3px solid #312254; padding-left: 0.75rem; transition: opacity 0.3s; }
+    .log-entry.log-success { border-left-color: #4ade80; }
+    .log-entry.log-highlight { border-left-color: #f472b6; color: #f472b6; font-weight: bold;}
 </style>
 {% endblock %}
 
@@ -155,87 +160,97 @@
 document.addEventListener('DOMContentLoaded', () => {
     const sleep = ms => new Promise(res => setTimeout(res, ms));
 
-    // --- Elemente UI ---
     const runBtn = document.getElementById('run-simulation');
     const spinner = document.getElementById('spinner');
     const simContainer = document.getElementById('e91-visualization');
     const resultsPanel = document.getElementById('results-panel');
+    const logPanel = document.getElementById('log-panel');
     const aliceStation = document.getElementById('alice-station');
     const bobStation = document.getElementById('bob-station');
     const aliceResultBox = document.getElementById('alice-result');
     const bobResultBox = document.getElementById('bob-result');
     const channel = document.getElementById('e91-channel');
+    const source = document.getElementById('source');
     const plotDiv = document.getElementById('plot-div');
     const bellTestValue = document.getElementById('bell-test-value');
     const bellTestVerdict = document.getElementById('bell-test-verdict');
     
-    // --- Logica Tutorial ---
     if (!sessionStorage.getItem('e91IntroSeen')) {
         const introModal = new bootstrap.Modal(document.getElementById('introModal'));
         const slides = document.querySelectorAll('.modal-slide');
         const nextBtn = document.getElementById('modalNextBtn');
         const prevBtn = document.getElementById('modalPrevBtn');
         let currentSlide = 0;
-
         const showSlide = (index) => {
             slides.forEach((slide, i) => slide.classList.toggle('active-slide', i === index));
             prevBtn.disabled = index === 0;
             nextBtn.textContent = (index === slides.length - 1) ? 'Începe!' : 'Următorul';
         };
-
         nextBtn.addEventListener('click', () => {
             currentSlide++;
-            if (currentSlide >= slides.length) {
-                sessionStorage.setItem('e91IntroSeen', 'true');
-                introModal.hide();
-            } else {
-                showSlide(currentSlide);
-            }
+            if (currentSlide >= slides.length) { sessionStorage.setItem('e91IntroSeen', 'true'); introModal.hide(); } 
+            else { showSlide(currentSlide); }
         });
-
-        prevBtn.addEventListener('click', () => {
-            if (currentSlide > 0) showSlide(--currentSlide);
-        });
-        
+        prevBtn.addEventListener('click', () => { if (currentSlide > 0) showSlide(--currentSlide); });
         introModal.show();
     }
+    
+    const updateLog = (message, type = 'info') => {
+        const entry = document.createElement('p');
+        entry.className = `log-entry log-${type}`;
+        entry.textContent = `> ${message}`;
+        logPanel.appendChild(entry);
+        logPanel.scrollTop = logPanel.scrollHeight;
+    };
 
-    // --- Logica Simularii ---
     runBtn.addEventListener('click', async () => {
         runBtn.disabled = true;
         simContainer.classList.remove('visible');
         resultsPanel.classList.remove('visible');
+        logPanel.classList.remove('visible');
+        logPanel.innerHTML = '';
         spinner.classList.remove('d-none');
         aliceResultBox.textContent = '?';
         bobResultBox.textContent = '?';
+        source.innerHTML = `<img src="{{ url_for('static', filename='images/stomper.png') }}" alt="Source">`;
 
         await sleep(500);
         spinner.classList.add('d-none');
         simContainer.classList.add('visible');
+        logPanel.classList.add('visible');
+        updateLog('Pornire demonstrație E91...');
 
         let counts = {'00': 0, '11': 0, '01': 0, '10': 0};
-        const totalRuns = 10;
+        const totalRuns = 6;
         
         for (let i = 0; i < totalRuns; i++) {
+            updateLog(`Sursa pregătește perechea de qubiți inseparabili #${i + 1}...`);
+            source.innerHTML = `<img src="{{ url_for('static', filename='images/stomper.gif') }}?t=${new Date().getTime()}" alt="Stomper">`;
+            await sleep(500);
+
             const particleAlice = document.createElement('div');
             const particleBob = document.createElement('div');
             particleAlice.className = 'particle alice';
             particleBob.className = 'particle bob';
             channel.appendChild(particleAlice);
             channel.appendChild(particleBob);
+            updateLog('Qubiții sunt emiși simultan către Alice și Bob.');
+            
+            source.innerHTML = `<img src="{{ url_for('static', filename='images/stomper.png') }}" alt="Source">`; // Revine la starea statica
 
-            await sleep(1400);
+            await sleep(800);
 
             const result = Math.random() < 0.5 ? '0' : '1';
             aliceStation.classList.add('active');
             bobStation.classList.add('active');
             aliceResultBox.textContent = result;
             bobResultBox.textContent = result;
+            updateLog(`Alice și Bob măsoară. Datorită inseparabilității, rezultatele sunt perfect corelate: ${result}`, 'success');
             
             if (result === '0') counts['00']++;
             else counts['11']++;
 
-            await sleep(300);
+            await sleep(200);
             aliceStation.classList.remove('active');
             bobStation.classList.remove('active');
             particleAlice.remove();
@@ -243,11 +258,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (i < totalRuns - 1) await sleep(100);
         }
 
+        updateLog('Simulare finalizată. Se calculează valoarea S pentru Testul Bell...');
         resultsPanel.classList.add('visible');
         
         const s_value = 2 * Math.sqrt(2) - (Math.random() * 0.1);
         bellTestValue.textContent = `S = ${s_value.toFixed(3)}`;
-        bellTestVerdict.innerHTML = `Valoarea este > 2.<br>Corelația este cuantică, nu clasică.`;
+        bellTestVerdict.innerHTML = `Valoarea este > 2.<br>Inegalitatea Bell este încălcată.`;
+        updateLog(`Rezultat: S=${s_value.toFixed(3)}. Corelațiile observate sunt mai puternice decât permite fizica clasică.`, 'highlight');
         
         const plotData = [{
             x: Object.keys(counts),
@@ -260,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
             paper_bgcolor: '#232136',
             plot_bgcolor: '#232136',
             font: { color: '#e0e7ff' },
-            xaxis: { title: 'Stare Măsurată', gridcolor: '#312254' },
+            xaxis: { title: 'Stare Măsurată (Alice, Bob)', gridcolor: '#312254' },
             yaxis: { title: 'Număr apariții (simulat)', gridcolor: '#312254' }
         };
         Plotly.newPlot(plotDiv, plotData, layout, {responsive: true});

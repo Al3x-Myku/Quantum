@@ -10,7 +10,8 @@
                 <div class="modal-slide active-slide">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                            <!-- MODIFICARE: Imaginea a fost schimbata -->
+                            <img src="{{ url_for('static', filename='images/yapper.gif') }}" alt="Yapper GIF" width="100">
                         </div>
                         <div class="chat-bubble ms-3">
                             <h5 style="color:#a78bfa;">Bun venit în Lobby-ul Local!</h5>
@@ -21,7 +22,8 @@
                 <div class="modal-slide">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                           <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                            <!-- MODIFICARE: Imaginea a fost schimbata -->
+                           <img src="{{ url_for('static', filename='images/yapper.gif') }}" alt="Yapper GIF" width="100">
                         </div>
                         <div class="chat-bubble ms-3">
                             <p class="mb-0">Apasă "Creează Joc", apoi deschide link-urile generate în tab-uri noi pentru a juca rolurile lui Alice, Bob și Eve.</p>
@@ -46,11 +48,9 @@
     </div>
 </div>
 
-<div class="card p-4 shadow-lg"
-     style="background: linear-gradient(135deg, #181028 0%, #312254 60%, #1e193a 100%); border-radius: 1.5rem; color: #e0e7ff;">
+<div class="card p-4 shadow-lg">
     
     <h2 class="mb-3" style="color:#a78bfa;">BB84 - Lobby Multi-Tab Local</h2>
-    <!-- Am eliminat stilul local de pe acest paragraf pentru a moșteni culoarea globală -->
     <p>Creează o nouă sesiune de joc și deschide link-urile în tab-uri noi pentru a juca rolurile lui Alice, Bob și Eve în timp real, local.</p>
     
     <div id="create-game-panel" class="p-4 rounded-lg" style="background-color: #232136;">
@@ -91,6 +91,7 @@
 
 {% block styles %}
 <style>
+    .card { color: #e0e7ff; }
     .btn-theme-primary { background-color: transparent; border: 2px solid #a78bfa; color: #a78bfa; font-weight: 600; transition: all 0.3s ease; }
     .btn-theme-primary:hover, .btn-theme-primary:disabled { background-color: #a78bfa; border-color: #a78bfa; color: #181028; }
     .btn-theme-primary:disabled { opacity: 0.5; cursor: not-allowed; }

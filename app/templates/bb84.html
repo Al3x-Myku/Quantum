@@ -10,7 +10,7 @@
                 <div class="modal-slide active-slide">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                            <img src="{{ url_for('static', filename='images/yapper.gif') }}" alt="Yapper GIF" width="100">
                         </div>
                         <div class="chat-bubble ms-3">
                             <h5 style="color:#a78bfa;">Suntem gata de o nouă aventură!</h5>
@@ -21,7 +21,7 @@
                 <div class="modal-slide">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                            <img src="{{ url_for('static', filename='images/yapper.gif') }}" alt="Yapper GIF" width="100">
                         </div>
                         <div class="chat-bubble ms-3">
                             <p class="mb-0"><b>Pasul 1:</b> Alice va genera biți și baze aleatorii și îi va trimite lui Bob prin "canalul cuantic".</p>
@@ -31,7 +31,7 @@
                 <div class="modal-slide">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                            <img src="{{ url_for('static', filename='images/yapper.gif') }}" alt="Yapper GIF" width="100">
                         </div>
                         <div class="chat-bubble ms-3">
                             <p class="mb-0"><b>Pasul 2:</b> Bob va alege și el baze aleatorii pentru a măsura qubiții. Uneori va nimeri baza corectă, alteori nu.</p>
@@ -41,7 +41,7 @@
                 <div class="modal-slide">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                           <img src="{{ url_for('static', filename='images/q-cat-avatar.svg') }}" alt="Q-Cat Avatar" width="100">
+                           <img src="{{ url_for('static', filename='images/yapper.gif') }}" alt="Yapper GIF" width="100">
                         </div>
                         <div class="chat-bubble ms-3">
                             <p class="mb-0"><b>Pasul 3:</b> Vor compara public bazele și vor păstra doar biții unde acestea s-au potrivit. Astfel se formează cheia! Hai să începem!</p>
@@ -80,9 +80,10 @@
             </div>
         </div>
         
-        <div id="alice-panel" class="simulation-step"></div>
-        <div id="quantum-channel" class="simulation-step"></div>
-        <div id="bob-panel" class="simulation-step"></div>
+        <div id="alice-section" class="simulation-step player-section"></div>
+        <div id="stomper-container" class="stomper-container"></div>
+        <div id="quantum-channel" class="simulation-step quantum-channel"></div>
+        <div id="bob-section" class="simulation-step player-section"></div>
         <div id="comparison-panel" class="simulation-step"></div>
         <div id="result-panel" class="simulation-step"></div>
     </div>
@@ -91,94 +92,44 @@
 
 {% block styles %}
 <style>
-    /* Stiluri pentru butoane */
-    .btn-theme-primary {
-        background-color: transparent; border: 2px solid #a78bfa; color: #a78bfa;
-        font-weight: 600; transition: all 0.3s ease;
-    }
-    .btn-theme-primary:hover, .btn-theme-primary:disabled {
-        background-color: #a78bfa; border-color: #a78bfa; color: #181028;
-    }
+    /* Stiluri butoane & tutorial (neschimbate) */
+    .btn-theme-primary { background-color: transparent; border: 2px solid #a78bfa; color: #a78bfa; font-weight: 600; transition: all 0.3s ease; }
+    .btn-theme-primary:hover, .btn-theme-primary:disabled { background-color: #a78bfa; border-color: #a78bfa; color: #181028; }
     .btn-theme-primary:disabled { opacity: 0.5; }
-
-    .btn-theme-secondary {
-        background-color: transparent; border: 2px solid #c4b5fd; color: #c4b5fd;
-        font-weight: 600; transition: all 0.3s ease;
-    }
+    .btn-theme-secondary { background-color: transparent; border: 2px solid #c4b5fd; color: #c4b5fd; font-weight: 600; transition: all 0.3s ease; }
     .btn-theme-secondary:hover { background-color: #c4b5fd; color: #181028; }
-    
-    /* Stiluri pentru Tutorial */
     .modal-slide { display: none; animation: fadeIn 0.5s; }
     .modal-slide.active-slide { display: block; }
-    .chat-bubble {
-        position: relative; background: #312254; padding: 1rem;
-        border-radius: 1rem; color: #e0e7ff;
-    }
-    .chat-bubble::before {
-        content: ''; position: absolute; top: 50%; left: -10px;
-        transform: translateY(-50%); width: 0; height: 0;
-        border-top: 10px solid transparent; border-bottom: 10px solid transparent;
-        border-right: 10px solid #312254;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
-
-    /* CORECȚIE CULOARE TEXT */
-    .card {
-        color: #e0e7ff; /* Culoare default pentru tot textul din card */
-    }
-    .card .col-form-label, .card h5 {
-        color: #a78bfa; /* Culoare accent pentru etichete si titluri de panouri */
-    }
+    .chat-bubble { position: relative; background: #312254; padding: 1rem; border-radius: 1rem; color: #e0e7ff; }
+    .chat-bubble::before { content: ''; position: absolute; top: 50%; left: -10px; transform: translateY(-50%); width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 10px solid #312254; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .card { color: #e0e7ff; }
+    .card .col-form-label, .card h5 { color: #a78bfa; }
 
     /* Stiluri pentru vizualizarea bitilor */
-    .simulation-step {
-        opacity: 0; transform: translateY(20px);
-        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-        margin-bottom: 2rem;
-    }
+    .simulation-step { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; margin-bottom: 1rem; }
     .simulation-step.visible { opacity: 1; transform: translateY(0); }
     .bit-stream { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-    .bit-card {
-        width: 60px; height: 70px; border: 1px solid #312254;
-        border-radius: 0.5rem; display: flex; flex-direction: column;
-        justify-content: center; align-items: center;
-        background-color: #232136; transition: all 0.5s ease;
-    }
+    .bit-card { width: 60px; height: 70px; border: 1px solid #312254; border-radius: 0.5rem; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #232136; transition: all 0.5s ease; }
     .bit-value { font-family: 'Courier New', Courier, monospace; font-size: 1.5rem; font-weight: bold; }
     .basis-icon { font-size: 1rem; }
-    .basis-rectilinear { color: #a78bfa; } /* + */
-    .basis-diagonal { color: #f472b6; }  /* x */
+    .basis-rectilinear { color: #a78bfa; }
+    .basis-diagonal { color: #f472b6; }
 
     .comparison-card.match { border-color: #4ade80; background-color: #163828; }
     .comparison-card.mismatch { border-color: #f87171; background-color: #451a1a; opacity: 0.4; }
-    .final-key {
-        font-size: 1.2rem; font-family: 'Courier New', Courier, monospace;
-        color: #4ade80; background-color: #181028; padding: 1rem;
-        border-radius: 0.5rem; word-break: break-all; border: 1px solid #4ade80;
-    }
+    .final-key { font-size: 1.2rem; font-family: 'Courier New', Courier, monospace; color: #4ade80; background-color: #181028; padding: 1rem; border-radius: 0.5rem; word-break: break-all; border: 1px solid #4ade80; }
 
-    #quantum-channel {
-        height: 40px; position: relative;
-        background-image: linear-gradient(to right, #31225433, #818cf833, #31225433);
-        border-radius: 20px; margin-top: -1rem; margin-bottom: 1rem;
-    }
-    .photon {
-        position: absolute; top: 50%; left: 20px; transform: translateY(-50%);
-        background-color: #f472b6; color: #181028;
-        font-family: 'Courier New', Courier, monospace; font-weight: bold;
-        font-size: 1rem; width: 24px; height: 24px;
-        border-radius: 50%; display: flex; justify-content: center; align-items: center;
-        box-shadow: 0 0 10px #f472b6; opacity: 0;
-        animation: travel 1.5s ease-in-out forwards;
-    }
-    @keyframes travel {
-        0% { left: 20px; opacity: 1; transform: translateY(-50%) scale(0.8); }
-        80% { opacity: 1; transform: translateY(-50%) scale(1); }
-        100% { left: calc(100% - 40px); opacity: 0; transform: translateY(-50%) scale(0.5); }
-    }
+    .quantum-channel { height: 40px; position: relative; background-image: linear-gradient(to right, #31225433, #818cf833, #31225433); border-radius: 20px; margin-bottom: 1rem; }
+    .photon { position: absolute; top: 50%; left: 20px; transform: translateY(-50%); background-color: #f472b6; color: #181028; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1rem; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 10px #f472b6; opacity: 0; animation: travel 1.5s ease-in-out forwards; }
+    @keyframes travel { 0% { left: 20px; opacity: 1; } 100% { left: calc(100% - 40px); opacity: 0; } }
+
+    /* Stiluri noi pentru GIF-uri */
+    .player-section { display: flex; align-items: center; gap: 1.5rem; }
+    .player-gif { width: 100px; height: 100px; object-fit: contain; }
+    .stomper-container { min-height: 80px; display: flex; align-items: center; }
+    .stomper-gif { width: 80px; height: auto; }
+
 </style>
 {% endblock %}
 
@@ -190,19 +141,14 @@ function runBB84Simulation(length) {
     const alice_bits = Array.from({ length }, () => Math.round(Math.random()));
     const alice_bases = Array.from({ length }, () => (Math.random() < 0.5 ? '+' : 'x'));
     const bob_bases = Array.from({ length }, () => (Math.random() < 0.5 ? '+' : 'x'));
-    const bob_results = alice_bits.map((bit, i) => {
-        return (alice_bases[i] === bob_bases[i]) ? bit : Math.round(Math.random());
-    });
+    const bob_results = alice_bits.map((bit, i) => (alice_bases[i] === bob_bases[i]) ? bit : Math.round(Math.random()));
     const sifted_key = [];
-    let errors = 0;
-    let matching_bases_count = 0;
+    let errors = 0; let matching_bases_count = 0;
     for (let i = 0; i < length; i++) {
         if (alice_bases[i] === bob_bases[i]) {
             matching_bases_count++;
             sifted_key.push(alice_bits[i]);
-            if (alice_bits[i] !== bob_results[i]) {
-                errors++;
-            }
+            if (alice_bits[i] !== bob_results[i]) errors++;
         }
     }
     const qber = matching_bases_count > 0 ? errors / matching_bases_count : 0;
@@ -210,27 +156,16 @@ function runBB84Simulation(length) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Tutorial logic... (neschimbat)
     if (!sessionStorage.getItem('bb84IntroSeen')) {
-        const introModal = new bootstrap.Modal(document.getElementById('introModal'));
-        const slides = document.querySelectorAll('.modal-slide');
-        const nextBtn = document.getElementById('modalNextBtn');
-        const prevBtn = document.getElementById('modalPrevBtn');
-        let currentSlide = 0;
-        const showSlide = (index) => {
-            slides.forEach((slide, i) => slide.classList.toggle('active-slide', i === index));
-            prevBtn.disabled = index === 0;
-            nextBtn.textContent = (index === slides.length - 1) ? 'Începe!' : 'Următorul';
-        };
-        nextBtn.addEventListener('click', () => {
-            currentSlide++;
-            if (currentSlide >= slides.length) {
-                sessionStorage.setItem('bb84IntroSeen', 'true');
-                introModal.hide();
-            } else {
-                showSlide(currentSlide);
-            }
-        });
-        prevBtn.addEventListener('click', () => { if (currentSlide > 0) showSlide(--currentSlide); });
+        const introModal=new bootstrap.Modal(document.getElementById('introModal'));
+        const slides=document.querySelectorAll('.modal-slide');
+        const nextBtn=document.getElementById('modalNextBtn');
+        const prevBtn=document.getElementById('modalPrevBtn');
+        let currentSlide=0;
+        const showSlide=(index)=>{slides.forEach((slide,i)=>slide.classList.toggle('active-slide',i===index));prevBtn.disabled=index===0;nextBtn.textContent=(index===slides.length-1)?'Începe!':'Următorul';};
+        nextBtn.addEventListener('click',()=>{currentSlide++;if(currentSlide>=slides.length){sessionStorage.setItem('bb84IntroSeen','true');introModal.hide();}else{showSlide(currentSlide);}});
+        prevBtn.addEventListener('click',()=>{if(currentSlide>0)showSlide(--currentSlide);});
         introModal.show();
     }
 
@@ -239,33 +174,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const spinner = document.getElementById('spinner');
         const keyLengthInput = document.getElementById('keyLength');
         const panels = {
-            alice: document.getElementById('alice-panel'),
-            bob: document.getElementById('bob-panel'),
+            alice: document.getElementById('alice-section'),
+            bob: document.getElementById('bob-section'),
             comparison: document.getElementById('comparison-panel'),
             result: document.getElementById('result-panel'),
             channel: document.getElementById('quantum-channel'),
         };
+        const stomperContainer = document.getElementById('stomper-container');
 
         button.disabled = true;
         spinner.classList.remove('d-none');
         Object.values(panels).forEach(p => { p.innerHTML = ''; p.classList.remove('visible'); });
+        stomperContainer.innerHTML = '';
 
         try {
             const keyLength = parseInt(keyLengthInput.value);
-            if (isNaN(keyLength) || keyLength < 8 || keyLength > 64) {
-                throw new Error("Numărul de qubiți trebuie să fie între 8 și 64.");
-            }
+            if (isNaN(keyLength) || keyLength < 8 || keyLength > 64) throw new Error("Numărul de qubiți trebuie să fie între 8 și 64.");
+            
             await sleep(250); 
             const data = runBB84Simulation(keyLength);
             spinner.classList.add('d-none');
-            displayAlice(data.alice_bits, data.alice_bases);
-            await sleep(100);
-            await animateQuantumChannel(data.alice_bits);
-            displayBob(data.bob_bases, data.bob_results);
+
+            displayPanel('alice', data.alice_bits, data.alice_bases, 'Alice');
+            await sleep(200);
+
+            await triggerStompAndAnimateChannel(stomperContainer, panels.channel, data.alice_bits);
+            
+            displayPanel('bob', data.bob_results, data.bob_bases, 'Bob');
             await sleep(500);
-            displayComparison(data.alice_bases, data.bob_bases, data.bob_results);
+
+            displayComparison(panels.comparison, data.alice_bases, data.bob_bases, data.bob_results);
             await sleep(500);
-            displayResult(data.sifted_key, data.qber);
+            
+            displayResult(panels.result, data.sifted_key, data.qber);
         } catch (error) {
             spinner.classList.add('d-none');
             panels.alice.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
@@ -276,25 +217,40 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+async function triggerStompAndAnimateChannel(stomperContainer, channel, bits) {
+    stomperContainer.innerHTML = `<img src="{{ url_for('static', filename='images/stomper.gif') }}?t=${new Date().getTime()}" alt="Stomper" class="stomper-gif">`;
+    await animateQuantumChannel(channel, bits); 
+    stomperContainer.innerHTML = '';
+}
+
 function createBitCard(bit, basis, customClass = '') {
     const basisClass = basis === '+' ? 'basis-rectilinear' : 'basis-diagonal';
     const basisIcon = basis === '+' ? 'bi-plus-lg' : 'bi-x-lg';
     return `<div class="bit-card ${customClass}"><div class="bit-value">${bit}</div><div class="basis-icon ${basisClass}"><i class="${basisIcon}"></i></div></div>`;
 }
 
-function displayAlice(bits, bases) {
-    const panel = document.getElementById('alice-panel');
-    let html = '<h5>Alice trimite:</h5><div class="bit-stream">';
-    bits.forEach((bit, i) => { html += createBitCard(bit, bases[i]); });
-    html += '</div>';
-    panel.innerHTML = html;
-    panel.classList.add('visible');
+function displayPanel(panelId, bits, bases, title) {
+    const section = document.getElementById(`${panelId}-section`);
+    const gifSrc = playerGifs[panelId];
+    let html = `
+        <div class="player-gif-container">
+            <img src="${gifSrc}" alt="${title}" class="player-gif">
+        </div>
+        <div class="flex-grow-1">
+            <h6>${title} alege:</h6>
+            <div class="bit-stream">
+    `;
+    const bitsArray = Array.isArray(bits) ? bits : String(bits).split('');
+    bitsArray.forEach((bit, i) => html += createBitCard(bit, bases[i]));
+    html += '</div></div>';
+    section.innerHTML = html;
+    section.classList.add('visible');
 }
 
-async function animateQuantumChannel(bits) {
-    const channel = document.getElementById('quantum-channel');
+async function animateQuantumChannel(channel, bits) {
     channel.classList.add('visible');
-    for (const bit of bits) {
+    const bitsArray = Array.isArray(bits) ? bits : String(bits).split('');
+    for (const bit of bitsArray) {
         const photon = document.createElement('div');
         photon.className = 'photon';
         photon.textContent = bit;
@@ -304,17 +260,7 @@ async function animateQuantumChannel(bits) {
     await sleep(1500); 
 }
 
-function displayBob(bases, results) {
-    const panel = document.getElementById('bob-panel');
-    let html = '<h5>Bob măsoară:</h5><div class="bit-stream">';
-    results.forEach((bit, i) => { html += createBitCard(bit, bases[i]); });
-    html += '</div>';
-    panel.innerHTML = html;
-    panel.classList.add('visible');
-}
-
-function displayComparison(aliceBases, bobBases, bobResults) {
-    const panel = document.getElementById('comparison-panel');
+function displayComparison(panel, aliceBases, bobBases, bobResults) {
     let html = '<h5>Discuție publică (compararea bazelor):</h5><div class="bit-stream">';
     aliceBases.forEach((aBasis, i) => {
         const bBasis = bobBases[i];
@@ -326,8 +272,7 @@ function displayComparison(aliceBases, bobBases, bobResults) {
     panel.classList.add('visible');
 }
 
-function displayResult(key, qber) {
-    const panel = document.getElementById('result-panel');
+function displayResult(panel, key, qber) {
     const qberPercentage = (qber * 100).toFixed(2);
     let html = `
         <div class="final-key-container">
@@ -344,5 +289,9 @@ function displayResult(key, qber) {
     panel.classList.add('visible');
 }
 
+const playerGifs = {
+    alice: "{{ url_for('static', filename='images/alice.gif') }}",
+    bob: "{{ url_for('static', filename='images/bob.gif') }}"
+};
 </script>
 {% endblock %}

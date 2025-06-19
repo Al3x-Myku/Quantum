@@ -46,14 +46,11 @@
         }
 
         /* === STILURI PENTRU MENIUL FIX (STICKY) === */
-        nav.navbar {
-            padding-top: 0.75rem;
-            padding-bottom: 0.75rem;
-            background: linear-gradient(135deg, #181028e0 0%, #312254e0 60%, #1e193ae0) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+        nav.navbar.fixed-top {
+            background: rgba(24, 16, 40, 0.75) !important; /* Culoare semi-transparenta pentru efect de sticla */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid #a78bfa30;
-            box-shadow: 0 4px 32px #a78bfa33;
         }
         
         /* === EFECT LED "WAVE" PENTRU CARDURI (Metoda Corecta Finala) === */
@@ -120,11 +117,12 @@
 <!-- Elementul pentru fundalul animat -->
 <div id="particles-js"></div>
 
-<!-- Meniul este acum fixat sus, fara margini si full-width -->
-<nav class="navbar navbar-expand-lg fixed-top">
-  <div class="container-fluid">
-    <a class="navbar-brand d-flex align-items-center gap-2" href="/" style="color: #a78bfa; font-size: 2rem; font-weight: 700; letter-spacing: 1px;">
-      <i class="bi bi-shield-lock-fill" style="font-size: 2.2rem; color: #a78bfa;"></i>
+<!-- Meniul este acum fixat sus, cu clasa `fixed-top` de la Bootstrap -->
+<nav class="navbar navbar-expand-lg fixed-top py-3">
+  <!-- MODIFICARE: Adaugat clasa px-4 pentru padding orizontal -->
+  <div class="container-fluid px-4">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/" style="color: #ffffff; font-size: 2rem; font-weight: 700; letter-spacing: 1px;">
+      <i class="bi bi-shield-lock-fill" style="font-size: 2.2rem; color: #ffffff;"></i>
       QKD Explorer
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">

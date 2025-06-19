@@ -2,24 +2,48 @@
 {% block title %}Bun Venit - QKD Explorer{% endblock %}
 
 {% block content %}
-<div class="container col-xxl-8 px-4 py-5">
-    <div class="row flex-lg-row align-items-center g-5 py-5">
-        
-        <div class="col-12 col-lg-6 d-flex justify-content-center">
-            <img src="/static/images/your-gif-name.gif" 
-                 class="img-fluid" 
-                 alt="Animație a unei rețele cuantice" 
-                 style="border-radius: 1.5rem; box-shadow: 0 8px 32px #a78bfa33;">
-        </div>
+<!-- Wrapper nou pentru a controla inaltimea si alinierea verticala -->
+<div class="d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 140px);">
+    <div class="container-fluid">
+        <div class="row flex-lg-row align-items-center g-5 py-5">
+            
+            <div class="col-12 col-lg-6 d-flex justify-content-center">
+                <!-- Imaginea SVG a fost adaugata pentru a asigura un exemplu functional -->
+                <svg class="img-fluid" viewBox="0 0 700 500" xmlns="http://www.w3.org/2000/svg" role="img" preserveAspectRatio="xMidYMid slice" focusable="false">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#818cf8;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#f472b6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="100%" height="100%" fill="none"></rect>
+                    <circle cx="150" cy="150" r="15" fill="url(#grad1)" />
+                    <circle cx="550" cy="350" r="20" fill="url(#grad1)" />
+                    <circle cx="200" cy="400" r="12" fill="url(#grad2)" />
+                    <circle cx="600" cy="100" r="18" fill="url(#grad2)" />
+                    <circle cx="370" cy="250" r="25" fill="#110d1e" stroke="url(#grad1)" stroke-width="3"/>
+                    <line x1="150" y1="150" x2="370" y2="250" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5,5" opacity="0.7"/>
+                    <line x1="370" y1="250" x2="550" y2="350" stroke="#c4b5fd" stroke-width="2" opacity="0.7"/>
+                    <line x1="370" y1="250" x2="600" y2="100" stroke="#c4b5fd" stroke-width="2" opacity="0.7"/>
+                    <line x1="200" y1="400" x2="370" y2="250" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5,5" opacity="0.7"/>
+                    <line x1="150" y1="150" x2="600" y2="100" stroke="#c4b5fd" stroke-width="1" opacity="0.4"/>
+                    <line x1="200" y1="400" x2="550" y2="350" stroke="#c4b5fd" stroke-width="1" opacity="0.4"/>
+                </svg>
+            </div>
 
-        <div class="col-12 col-lg-6 text-center text-lg-start">
-            <h1 class="display-5 fw-bold lh-1 mb-3" id="type-title" style="color:#f3f4f6;">Bun Venit la QKD Explorer</h1>
-            <p class="lead mb-4" id="type-lead" style="min-height:4.5em; color:#e0e7ff;">
-                O aplicație web interactivă pentru a explora conceptele de bază ale Distribuției Cuantice a Cheilor (Quantum Key Distribution). Navigați folosind meniul de mai sus pentru a experimenta cu diferite protocoale și vizualizări.
-            </p>
-            <div class="d-grid gap-3 d-md-flex justify-content-center justify-content-md-start">
-                <a href="/bloch" class="btn btn-landing btn-custom-primary btn-lg px-4 me-md-2">Începe cu Sfera Bloch</a>
-                <a href="/bb84" class="btn btn-landing btn-custom-secondary btn-lg px-4">Simulează BB84</a>
+            <div class="col-12 col-lg-6 text-center text-lg-start">
+                <h1 class="display-4 fw-bold lh-1 mb-3" id="type-title" style="color:#f3f4f6;">Bun Venit la QKD Explorer</h1>
+                <p class="lead mb-4" id="type-lead" style="min-height:4.5em; color:#e0e7ff;">
+                    O aplicație web interactivă pentru a explora conceptele de bază ale Distribuției Cuantice a Cheilor (Quantum Key Distribution). Navigați folosind meniul de mai sus pentru a experimenta cu diferite protocoale și vizualizări.
+                </p>
+                <div class="d-grid gap-3 d-md-flex justify-content-center justify-content-md-start">
+                    <a href="/bloch" class="btn btn-landing btn-custom-primary btn-lg px-4 me-md-2">Începe cu Sfera Bloch</a>
+                    <a href="/bb84" class="btn btn-landing btn-custom-secondary btn-lg px-4">Simulează BB84</a>
+                </div>
             </div>
         </div>
     </div>

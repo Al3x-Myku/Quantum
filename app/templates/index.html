@@ -18,7 +18,7 @@
             <!-- MODIFICARE: Adaugat padding mai mare (p-lg-5) pentru text pe ecrane mari -->
             <div class="col-12 col-lg-6 text-center text-lg-start p-lg-5">
                 <h1 class="display-4 fw-bold lh-1 mb-3" id="type-title" style="color:#f3f4f6;">Bun Venit la QKD Explorer</h1>
-                <p class="lead mb-4" id="type-lead" style="min-height:4.5em; color:#e0e7ff;">
+                <p class="lead mb-4" id="type-lead" style="min-height:4.5em; color:#3b3750;">
                     O aplicație web interactivă pentru a explora conceptele de bază ale Distribuției Cuantice a Cheilor (Quantum Key Distribution). Navigați folosind meniul de mai sus pentru a experimenta cu diferite protocoale și vizualizări.
                 </p>
                 <div class="d-grid gap-3 d-md-flex justify-content-center justify-content-md-start">
@@ -30,11 +30,18 @@
     </div>
 </div>
 
-<!-- NOU: Element interactiv "Ghost" -->
-<a href="/minigames" class="ghost-link">
+<!-- Element interactiv "Ghost" pentru minigames -->
+<a href="/minigames" class="corner-link ghost-link">
     <img src="{{ url_for('static', filename='images/ghost.gif') }}" alt="Minigames">
-    <span class="ghost-tooltip">Explorează jocurile cuantice!</span>
+    <span class="tooltip-text">Explorează jocurile cuantice!</span>
 </a>
+
+<!-- NOU: Element interactiv "Sleepy" pentru lobby -->
+<a href="/lobby" class="corner-link sleepy-link">
+    <img src="{{ url_for('static', filename='images/sleeping.gif') }}" alt="Lobby">
+    <span class="tooltip-text">Vrei să te relaxezi?</span>
+</a>
+
 
 <script>
 // Script-ul pentru efectul de "typing"
@@ -109,25 +116,21 @@ a.btn-custom-secondary:hover {
     background-color: #818cf8;
 }
 
-/* === MODIFICARE: Stiluri pentru Ghost Link === */
-.ghost-link {
+/* === NOU: Stiluri pentru GIF-urile din colt === */
+.corner-link {
     position: fixed;
-    /* Padding marit fata de marginile ecranului */
-    bottom: 2.5rem;
-    left: 2.5rem;
     z-index: 1000;
     transition: transform 0.3s ease;
 }
-.ghost-link:hover {
+.corner-link:hover {
     transform: scale(1.1);
 }
-.ghost-link img {
-    /* Imaginea a fost marita */
+.corner-link img {
     width: 140px; 
     height: auto;
     filter: drop-shadow(0 6px 12px rgba(167, 139, 250, 0.5));
 }
-.ghost-link .ghost-tooltip {
+.corner-link .tooltip-text {
     visibility: hidden;
     width: 220px;
     background-color: #181028;
@@ -138,14 +141,12 @@ a.btn-custom-secondary:hover {
     position: absolute;
     z-index: 1;
     bottom: 115%; 
-    left: 50%;
-    margin-left: -110px; 
     opacity: 0;
     transition: opacity 0.3s;
     border: 1px solid #a78bfa;
     box-shadow: 0 4px 20px rgba(167, 139, 250, 0.3);
 }
-.ghost-link .ghost-tooltip::after {
+.corner-link .tooltip-text::after {
     content: "";
     position: absolute;
     top: 100%;
@@ -155,9 +156,28 @@ a.btn-custom-secondary:hover {
     border-style: solid;
     border-color: #a78bfa transparent transparent transparent;
 }
-.ghost-link:hover .ghost-tooltip {
+.corner-link:hover .tooltip-text {
     visibility: visible;
     opacity: 1;
 }
+
+.ghost-link {
+    bottom: 2.5rem;
+    left: 2.5rem;
+}
+.ghost-link .tooltip-text {
+    left: 50%;
+    margin-left: -110px; 
+}
+
+.sleepy-link {
+    bottom: 2.5rem;
+    right: 2.5rem;
+}
+.sleepy-link .tooltip-text {
+    left: 50%;
+    margin-left: -110px; 
+}
+
 </style>
 {% endblock %}

@@ -55,3 +55,8 @@ def play_bb84_local():
     """
     # Vom crea acest fisier in pasul urmator.
     return render_template('play_bb84_local.html')
+
+
+@app.route('/lobby')
+def lobby():
+    return render_template('lobby.html')

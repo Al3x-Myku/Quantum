@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Lobby - QKD Explorer{% endblock %}
+
+{% block content %}
+<div id="lobby-bg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;"></div>
+<div id="floating-cats" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:2;"></div>
+{% endblock %}
+
+{% block styles %}
+<style>
+body {
+    background: var(--bs-dark, #181028);
+    min-height: 100vh;
+    overflow: hidden;
+}
+#floating-cats .cat-float {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    opacity: 0;
+    animation: fade-in 2s ease forwards;
+}
+#floating-cats .cat-float.fading-out {
+    animation: fade-out 2s ease forwards;
+}
+#floating-cats img {
+    max-width: 160px;
+    max-height: 160px;
+    border-radius: 1.5rem;
+    background: transparent;
+    margin-bottom: 0.5rem;
+    box-shadow: none;
+}
+.cat-fact-bubble {
+    position: relative;
+    color: #e0e7ff;
+    background: transparent;
+    padding: 1rem 1.5rem;
+    border-radius: 1rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-top: 0.2rem;
+    text-align: center; /* Center the text */
+    user-select: none;
+    pointer-events: none;
+    border: none;
+    box-shadow: none;
+    text-shadow: none;
+}
+.cat-fact-bubble::before {
+    display: none;
+}
+@keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes fade-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+/* Navbar hide/show */
+#main-navbar {
+    transition: opacity 0.5s;
+}
+#main-navbar.hide-navbar {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const generalFacts = [
+    "QKD permite două părți să partajeze o cheie secretă cu securitate garantată de legile fizicii.",
+    "Un qubit poate fi 0, 1 sau orice superpoziție între acestea.",
+    "Orice încercare de a intercepta o cheie cuantică este detectabilă datorită principiului incertitudinii.",
+    "Protocolul BB84 a fost primul protocol QKD propus, în 1984.",
+    "Entanglement-ul cuantic permite corelări imposibile clasic.",
+    "Calculatoarele cuantice pot rezolva anumite probleme mult mai rapid decât cele clasice.",
+    "QKD nu transmite cheia însăși, ci folosește proprietăți cuantice pentru a o genera la ambele capete.",
+    "Qubiții pot fi implementați cu fotoni, ioni sau chiar atomi.",
+    "Un mesaj criptat cu o cheie generată prin QKD este imposibil de spart, dacă cheia este folosită o singură dată.",
+    "În QKD, Alice și Bob pot detecta prezența lui Eve (interceptorul) prin creșterea ratei de erori.",
+    "Calculatoarele cuantice folosesc logica cuantică, nu cea booleană.",
+    "QKD este deja folosit în unele rețele bancare și guvernamentale pentru securitate maximă.",
+    "Un canal cuantic nu poate fi clonat perfect (no-cloning theorem).",
+    "QKD funcționează chiar și dacă canalul de comunicație este nesigur.",
+    "Un calculator cuantic poate efectua operații paralele pe mai multe stări simultan."
+];
+
+const catImages = [
+    { file: "bob.gif" },
+    { file: "Eve.gif" },
+    { file: "Alice.gif" },
+    { file: "stomper.gif" },
+    { file: "yapper.gif" },
+    { file: "ghost.gif" },
+    { file: "intro_box.gif" },
+    { file: "sleeping.gif", fact: "Zzzzzzzzzzzzzzzzzzz" }
+];
+
+let lastCatIdx = -1;
+
+function randomBetween(a, b) {
+    return Math.random() * (b - a) + a;
+}
+
+function getNextCatIdx() {
+    let idx;
+    do {
+        idx = Math.floor(Math.random() * catImages.length);
+    } while (idx === lastCatIdx && catImages.length > 1);
+    lastCatIdx = idx;
+    return idx;
+}
+
+function getRandomFact(cat) {
+    if (cat.file === "sleeping.gif") {
+        return cat.fact;
+    }
+    // Pick a random general fact
+    return generalFacts[Math.floor(Math.random() * generalFacts.length)];
+}
+
+function showRandomCat() {
+    return new Promise(resolve => {
+        const idx = getNextCatIdx();
+        const cat = catImages[idx];
+
+        const container = document.getElementById('floating-cats');
+        const el = document.createElement('div');
+        el.className = 'cat-float';
+
+        // Random position (avoid edges)
+        const left = randomBetween(8, 80); // vw
+        const top = randomBetween(20, 65); // vh
+
+        el.style.left = left + 'vw';
+        el.style.top = top + 'vh';
+
+        // Floating effect: random horizontal drift
+        const drift = randomBetween(-30, 30);
+        el.style.transform = `translateX(${drift}px)`;
+
+        // Image
+        const img = document.createElement('img');
+        img.src = "{{ url_for('static', filename='images/') }}" + cat.file;
+        img.alt = "cat";
+        el.appendChild(img);
+
+        // Fact bubble
+        const fact = document.createElement('div');
+        fact.className = 'cat-fact-bubble';
+        fact.textContent = getRandomFact(cat);
+        el.appendChild(fact);
+
+        container.appendChild(el);
+
+        // Fade out after 5s (2s fade in + 3s visible)
+        setTimeout(() => {
+            el.classList.add('fading-out');
+        }, 5000);
+
+        // Remove after fade out (2s)
+        setTimeout(() => {
+            el.remove();
+            resolve();
+        }, 7000);
+    });
+}
+
+// Show cats one by one, never the same twice, wait for fade out
+async function startCatShow() {
+    while (true) {
+        await showRandomCat();
+    }
+}
+
+window.addEventListener('DOMContentLoaded', startCatShow);
+
+// Navbar hide/show on mouse move
+let navbarTimeout = null;
+function showNavbar() {
+    const navbar = document.getElementById('main-navbar');
+    if (!navbar) return;
+    navbar.classList.remove('hide-navbar');
+    if (navbarTimeout) clearTimeout(navbarTimeout);
+    navbarTimeout = setTimeout(() => {
+        navbar.classList.add('hide-navbar');
+    }, 1500);
+}
+window.addEventListener('mousemove', showNavbar);
+window.addEventListener('DOMContentLoaded', () => {
+    // Hide navbar after 1.5s if no mouse movement
+    setTimeout(() => {
+        const navbar = document.getElementById('main-navbar');
+        if (navbar) navbar.classList.add('hide-navbar');
+    }, 1500);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+{% block title %}Quantum Sweeper{% endblock %}
+
+{% block content %}
+<!-- Wrapper nou pentru a centra cardul jocului -->
+<div class="game-wrapper">
+    <div class="card p-4 p-md-5 text-center">
+        <h1 class="quantum-title mb-2">Quantum Sweeper</h1>
+        <p class="mb-4">Un Minesweeper unde minele nu există până când nu le observi. Fiecare click este o măsurătoare care colapsează superpoziția.</p>
+
+        <!-- Panoul de control -->
+        <div class="controls-panel d-flex flex-column align-items-center gap-3 mb-4">
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
+                <div>
+                    <label for="difficulty" class="form-label">Dificultate:</label>
+                    <select id="difficulty" class="form-select">
+                        <option value="easy">Ușor (9x9, 10 Mine)</option>
+                        <option value="medium" selected>Mediu (16x16, 40 Mine)</option>
+                        <option value="hard">Greu (30x16, 99 Mine)</option>
+                    </select>
+                </div>
+                <button id="reset-button" class="btn btn-theme-primary"><i class="bi bi-arrow-clockwise"></i> Reset</button>
+            </div>
+            <div class="game-status">
+                <div><i class="bi bi-minecart-loaded"></i> <span id="mines-left">0</span></div>
+                <div><i class="bi bi-clock-fill"></i> <span id="timer">0</span></div>
+            </div>
+        </div>
+
+        <!-- Grila de joc -->
+        <div id="game-board-container">
+            <div id="game-board"></div>
+            <div id="game-over-overlay" class="d-none">
+                <div id="game-over-text"></div>
+            </div>
+        </div>
+
+        <!-- Sectiunea explicativa a algoritmului -->
+        <div class="how-it-works mt-4">
+            <details>
+                <summary>Cum funcționează algoritmul cuantic?</summary>
+                <div class="explanation-grid mt-3">
+                    <div class="step">
+                        <div class="icon-wrapper"><i class="bi bi-layers-half"></i></div>
+                        <h6>1. Starea de Superpoziție</h6>
+                        <p>La început, fiecare celulă este un qubit. Poziția minelor NU este pre-determinată; ele există într-o ceață de probabilități.</p>
+                    </div>
+                    <div class="step">
+                        <div class="icon-wrapper"><i class="bi bi-eye-fill"></i></div>
+                        <h6>2. Măsurătoare & Colaps</h6>
+                        <p>Primul tău click este o "măsurătoare". Aceasta forțează universul jocului să se "colapseze" într-o singură stare, plasând minele aleatoriu, dar garantând că locația ta este sigură.</p>
+                    </div>
+                    <div class="step">
+                        <div class="icon-wrapper"><i class="bi bi-joystick"></i></div>
+                        <h6>3. Explorare Clasică</h6>
+                        <p>După primul colaps, jocul devine clasic. Pozițiile minelor sunt acum fixe, permițându-ți să folosești logica pentru a câștiga.</p>
+                    </div>
+                </div>
+            </details>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --cell-size: 2.2rem;
+        --grid-gap: 4px;
+        --bg-unrevealed: #232136;
+        --bg-revealed: #181028;
+        --mine-color: #f87171;
+    }
+    
+    @media (max-width: 768px) {
+        :root { --cell-size: 1.8rem; }
+    }
+    @media (max-width: 576px) {
+        :root { --cell-size: 1.5rem; }
+    }
+
+    .game-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        padding: 1rem 0;
+    }
+
+    .card {
+        animation: none !important; 
+        border: 2px solid #a78bfa80;
+        box-shadow: 0 0 30px rgba(167, 139, 250, 0.3);
+        max-width: fit-content;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .card p, .card label {
+        color: #e0e7ff; 
+    }
+
+    .quantum-title {
+        font-family: 'Orbitron', sans-serif;
+        color: #a78bfa;
+        text-shadow: 0 0 15px #a78bfa;
+        font-weight: 700;
+    }
+    .form-select, .btn-theme-primary {
+        background-color: #232136;
+        color: #e0e7ff;
+        border: 1px solid #a78bfa;
+    }
+    .btn-theme-primary:hover {
+        background-color: #a78bfa;
+        color: #110d1e;
+    }
+
+    .game-status {
+        display: flex;
+        gap: 1.5rem;
+        background-color: #232136;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-family: 'Orbitron', sans-serif;
+        color: #e0e7ff; /* CORECȚIE: Adaugat pentru a face textul si iconitele vizibile */
+    }
+
+    #game-board-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    #game-board {
+        display: grid;
+        gap: var(--grid-gap);
+        background-color: #312254;
+        padding: var(--grid-gap);
+        border-radius: 0.5rem;
+    }
+
+    .cell {
+        width: var(--cell-size);
+        height: var(--cell-size);
+        background-color: var(--bg-unrevealed);
+        border-radius: 4px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: calc(var(--cell-size) * 0.6);
+        font-weight: bold;
+        cursor: pointer;
+        color: #ffffff;
+        transition: background-color 0.2s;
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    .cell:hover:not(.revealed) {
+        background-color: #312254;
+    }
+    
+    .cell.revealed {
+        background-color: var(--bg-revealed);
+        cursor: default;
+    }
+
+    .cell.mine {
+        color: var(--mine-color);
+        font-size: calc(var(--cell-size) * 0.8);
+    }
+    
+    .cell[data-count="1"] { color: #818cf8; }
+    .cell[data-count="2"] { color: #4ade80; }
+    .cell[data-count="3"] { color: #facc15; }
+    .cell[data-count="4"] { color: #f97316; }
+    .cell[data-count="5"] { color: #ef4444; }
+    .cell[data-count="6"] { color: #ec4899; }
+    .cell[data-count="7"] { color: #a78bfa; }
+    .cell[data-count="8"] { color: #ffffff; }
+
+    #game-over-overlay {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(17, 13, 30, 0.8);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--mine-color);
+        text-shadow: 0 0 15px var(--mine-color);
+        animation: fadeIn 0.5s;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .how-it-works summary {
+        cursor: pointer;
+        font-weight: bold;
+        color: #a78bfa;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+        padding: 0.5rem;
+    }
+    .how-it-works summary:hover { opacity: 1; }
+    .explanation-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        text-align: center;
+        background-color: #232136;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        border-top: 2px solid #312254;
+    }
+    .explanation-grid .step .icon-wrapper {
+        font-size: 2.5rem;
+        color: #f472b6;
+        margin-bottom: 0.5rem;
+    }
+    .explanation-grid .step h6 {
+        color: #c4b5fd;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+    .explanation-grid .step p {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        opacity: 0.8;
+        color: #e0e7ff;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Configurare joc ---
+    const difficulties = {
+        easy: { rows: 9, cols: 9, mines: 10 },
+        medium: { rows: 16, cols: 16, mines: 40 },
+        hard: { rows: 30, cols: 16, mines: 99 }
+    };
+    let currentDifficulty = 'medium';
+    let rows, cols, mineCount;
+
+    // --- Elemente UI ---
+    const board = document.getElementById('game-board');
+    const minesLeftDisplay = document.getElementById('mines-left');
+    const timerDisplay = document.getElementById('timer');
+    const difficultySelector = document.getElementById('difficulty');
+    const resetButton = document.getElementById('reset-button');
+    const gameOverOverlay = document.getElementById('game-over-overlay');
+    const gameOverText = document.getElementById('game-over-text');
+    
+    // --- Stare Joc ---
+    let timerInterval;
+    let seconds;
+    let boardState;
+    let isFirstClick;
+    let minesPlaced;
+    let revealedCount;
+    let flagsPlaced;
+    let gameOver;
+
+    // --- Logica Joc ---
+    function initGame() {
+        const settings = difficulties[currentDifficulty];
+        rows = settings.rows;
+        cols = settings.cols;
+        mineCount = settings.mines;
+        
+        isFirstClick = true;
+        minesPlaced = false;
+        revealedCount = 0;
+        flagsPlaced = 0;
+        gameOver = false;
+        seconds = 0;
+        
+        clearInterval(timerInterval);
+        timerDisplay.textContent = '0';
+        minesLeftDisplay.textContent = mineCount;
+        gameOverOverlay.classList.add('d-none');
+        board.innerHTML = '';
+        board.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+
+        boardState = Array(rows).fill(null).map(() => Array(cols).fill(null).map(() => ({
+            isMine: false,
+            isRevealed: false,
+            isFlagged: false,
+            adjacentMines: 0
+        })));
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+                cell.addEventListener('click', () => handleCellClick(r, c));
+                cell.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    handleRightClick(r, c);
+                });
+                board.appendChild(cell);
+            }
+        }
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            seconds++;
+            timerDisplay.textContent = seconds;
+        }, 1000);
+    }
+    
+    function placeMines(firstClickRow, firstClickCol) {
+        let placedMines = 0;
+        while (placedMines < mineCount) {
+            const r = Math.floor(Math.random() * rows);
+            const c = Math.floor(Math.random() * cols);
+
+            if (!boardState[r][c].isMine && !(r === firstClickRow && c === firstClickCol)) {
+                boardState[r][c].isMine = true;
+                placedMines++;
+            }
+        }
+        
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                if (!boardState[r][c].isMine) {
+                    let count = 0;
+                    getNeighbors(r, c).forEach(({row, col}) => {
+                        if (boardState[row][col].isMine) {
+                            count++;
+                        }
+                    });
+                    boardState[r][c].adjacentMines = count;
+                }
+            }
+        }
+        minesPlaced = true;
+    }
+
+    function handleCellClick(r, c) {
+        if (gameOver || boardState[r][c].isRevealed || boardState[r][c].isFlagged) {
+            return;
+        }
+
+        if (isFirstClick) {
+            startTimer();
+            placeMines(r, c);
+            isFirstClick = false;
+        }
+
+        const cellState = boardState[r][c];
+        if (cellState.isMine) {
+            endGame(false);
+            return;
+        }
+
+        revealCell(r, c);
+        checkWinCondition();
+    }
+    
+    function handleRightClick(r, c) {
+        if (gameOver || boardState[r][c].isRevealed) {
+            return;
+        }
+        const cellState = boardState[r][c];
+        const cellElement = document.querySelector(`[data-row='${r}'][data-col='${c}']`);
+        
+        cellState.isFlagged = !cellState.isFlagged;
+        if (cellState.isFlagged) {
+            cellElement.innerHTML = '🚩';
+            flagsPlaced++;
+        } else {
+            cellElement.innerHTML = '';
+            flagsPlaced--;
+        }
+        minesLeftDisplay.textContent = mineCount - flagsPlaced;
+    }
+
+    function revealCell(r, c) {
+        if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+        const cellState = boardState[r][c];
+        if (cellState.isRevealed || cellState.isFlagged || cellState.isMine) {
+            return;
+        }
+
+        cellState.isRevealed = true;
+        revealedCount++;
+        const cellElement = document.querySelector(`[data-row='${r}'][data-col='${c}']`);
+        cellElement.classList.add('revealed');
+
+        if (cellState.adjacentMines > 0) {
+            cellElement.textContent = cellState.adjacentMines;
+            cellElement.dataset.count = cellState.adjacentMines;
+        } else {
+            getNeighbors(r, c).forEach(n => setTimeout(() => revealCell(n.row, n.col), 10));
+        }
+    }
+    
+    function getNeighbors(r, c) {
+        const neighbors = [];
+        for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+                if (dr === 0 && dc === 0) continue;
+                const newRow = r + dr;
+                const newCol = c + dc;
+                if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+                    neighbors.push({row: newRow, col: newCol});
+                }
+            }
+        }
+        return neighbors;
+    }
+
+    function checkWinCondition() {
+        if (revealedCount === (rows * cols) - mineCount) {
+            endGame(true);
+        }
+    }
+
+    function endGame(isWin) {
+        gameOver = true;
+        clearInterval(timerInterval);
+        gameOverText.textContent = isWin ? "Câștigat!" : "Boom!";
+        gameOverText.style.color = isWin ? '#4ade80' : '#f87171';
+        gameOverOverlay.classList.remove('d-none');
+        
+        if (!isWin) {
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (boardState[r][c].isMine) {
+                        const cellElement = document.querySelector(`[data-row='${r}'][data-col='${c}']`);
+                        cellElement.classList.add('mine');
+                        cellElement.innerHTML = '💣';
+                    }
+                }
+            }
+        }
+    }
+
+    difficultySelector.addEventListener('change', (e) => {
+        currentDifficulty = e.target.value;
+        initGame();
+    });
+
+    resetButton.addEventListener('click', initGame);
+
+    initGame();
+});
+</script>
+{% endblock %}

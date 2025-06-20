@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Minigames - QKD Explorer{% endblock %}
+
+{% block content %}
+<!-- Sectiunea Hero care umple ecranul -->
+<div class="d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 95px);"> <!-- 95px este inaltimea aproximativa a meniului + padding -->
+    <div class="container-fluid">
+        <div class="row flex-lg-row align-items-center g-5 py-5">
+            <div class="col-12 col-lg-6 d-flex justify-content-center">
+                <img src="{{ url_for('static', filename='images/ghost.gif') }}" 
+                     class="img-fluid" 
+                     alt="Ghost Animation" 
+                     style="max-height: 400px; border-radius: 1.5rem;">
+            </div>
+            <div class="col-12 col-lg-6 text-center text-lg-start">
+                <h1 class="display-4 fw-bold lh-1 mb-3" id="type-title">Minigames QKD</h1>
+                <p class="lead mb-4" id="type-lead">
+                    Explorează concepte cuantice complexe prin activități interactive și jocuri educaționale.
+                </p>
+                <div class="d-grid gap-3 d-md-flex justify-content-center justify-content-md-start">
+                    <a href="/" class="btn btn-landing btn-custom-secondary btn-lg px-4 me-md-2">Înapoi la Acasă</a>
+                    <button type="button" class="btn btn-landing btn-custom-primary btn-lg px-4" onclick="document.getElementById('minigames-card').scrollIntoView({behavior: 'smooth'});">
+                        Vezi Minigames
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sectiunea cu jocurile, acum separata de hero section -->
+<div class="container-fluid">
+    <div class="row justify-content-center" style="padding-top: 10vh; padding-bottom: 10vh;">
+        <div class="col-12 col-lg-10">
+            <div id="minigames-card" class="card p-5 shadow-lg">
+                 <h3 class="mb-4 text-center" style="color:#a78bfa;">Alege un Joc</h3>
+                <div class="d-flex flex-row align-items-start justify-content-center flex-wrap gap-4">
+                    
+                    <!-- Cardurile cu jocurile au fost actualizate -->
+                    <a href="/interactive_bb84" class="minigame-thumb-card text-decoration-none">
+                        <div class="card-background" style="background-image: url('{{ url_for('static', filename='images/bb84.png') }}');"></div>
+                        <div class="card-content">
+                            <span class="fw-semibold">BB84 Interactiv</span>
+                        </div>
+                    </a>
+
+                    <a href="/quantum_sweeper" class="minigame-thumb-card text-decoration-none">
+                        <div class="card-background" style="background-image: url('{{ url_for('static', filename='images/sweeper.png') }}');"></div>
+                        <div class="card-content">
+                             <span class="fw-semibold">Quantum Sweeper</span>
+                        </div>
+                    </a>
+                    
+                    <a href="/quantum_slots" class="minigame-thumb-card text-decoration-none">
+                         <div class="card-background" style="background-image: url('{{ url_for('static', filename='images/slots.png') }}');"></div>
+                        <div class="card-content">
+                             <span class="fw-semibold">Quantum Slots</span>
+                        </div>
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+/* Stiluri pentru butoane ca în index.html */
+.btn-landing {
+    font-weight: 600;
+    border-radius: 0.75rem;
+    border-width: 2px;
+    border-style: solid;
+    transition: all 0.3s ease;
+    transform: translateY(0);
+}
+a.btn-landing:hover, button.btn-landing:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px -5px var(--btn-glow-color);
+    color: #181028 !important;
+}
+a.btn-custom-primary, button.btn-custom-primary {
+    --btn-glow-color: #a78bfa;
+    background-color: transparent;
+    border-color: #a78bfa;
+    color: #a78bfa;
+}
+a.btn-custom-primary:hover, button.btn-custom-primary:hover {
+    background-color: #a78bfa;
+}
+a.btn-custom-secondary, button.btn-custom-secondary {
+    --btn-glow-color: #818cf8;
+    background-color: transparent;
+    border-color: #818cf8;
+    color: #818cf8;
+}
+a.btn-custom-secondary:hover, button.btn-custom-secondary:hover {
+    background-color: #818cf8;
+}
+
+/* === STILURI NOI PENTRU CARDURILE DE JOC === */
+.minigame-thumb-card {
+    position: relative; /* Necesar pentru elementele absolute din interior */
+    overflow: hidden; /* Ascunde ce depaseste colturile rotunjite */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 1rem;
+    /* Dimensiuni marite */
+    width: 300px; 
+    height: 180px;
+    box-shadow: 0 4px 20px #110d1e80;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: 2px solid transparent;
+}
+.minigame-thumb-card:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 10px 30px #a78bfa55;
+    border-color: #a78bfa;
+}
+
+/* Elementul pentru imaginea de fundal */
+.minigame-thumb-card .card-background {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: blur(3px); /* Blur initial */
+    transform: scale(1.1); /* Usor zoom pentru a ascunde marginile blurate */
+    transition: filter 0.4s ease-in-out, transform 0.4s ease-in-out;
+}
+
+/* Efect la hover pe card */
+.minigame-thumb-card:hover .card-background {
+    filter: blur(0);
+    transform: scale(1);
+}
+
+/* Continutul textului de pe card */
+.minigame-thumb-card .card-content {
+    position: relative;
+    z-index: 2;
+    padding: 1rem;
+    background-color: rgba(17, 13, 30, 0.5);
+    border-radius: 0.5rem;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.7);
+    transition: opacity 0.4s ease-in-out;
+}
+
+/* Efect la hover pe text */
+.minigame-thumb-card:hover .card-content {
+    opacity: 0;
+}
+
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Script-ul pentru efectul de "typing" (optional, se poate pastra)
+document.addEventListener("DOMContentLoaded", function() {
+    function typeEffect(element, color, delay = 20, callback) {
+        if (!element) return;
+        const text = element.textContent.trim();
+        element.innerHTML = "";
+        for (let i = 0; i < text.length; i++) {
+            let span = document.createElement("span");
+            span.textContent = text[i];
+            span.style.color = "#3b3750";
+            element.appendChild(span);
+        }
+        let spans = element.querySelectorAll("span");
+        spans.forEach((span, i) => {
+            setTimeout(() => {
+                span.style.color = color;
+                if (i === spans.length - 1 && callback) callback();
+            }, i * delay);
+        });
+    }
+
+    const titleElem = document.getElementById("type-title");
+    const leadElem = document.getElementById("type-lead");
+    
+    if (titleElem && leadElem) {
+        typeEffect(titleElem, "#f3f4f6", 18, function() {
+            typeEffect(leadElem, "#e0e7ff", 6);
+        });
+    }
+});
+</script>
+{% endblock %}

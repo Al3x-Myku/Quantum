@@ -25,6 +25,14 @@ def e91():
     # Presupunand ca ai un e91.html
     return render_template('e91.html')
 
+@app.route('/quantum_slots')
+def quantum_slots():
+    return render_template('quantum_slots.html')
+
+@app.route('/quantum_sweeper')
+def quantum_sweeper_eve():
+    return render_template('quantum_sweeper.html')
+
 # --- JOC INTERACTIV LOCAL (MULTI-TAB) ---
 
 # Ruta pentru Lobby
@@ -32,6 +40,11 @@ def e91():
 def interactive_bb84_lobby():
     """Randeaza lobby-ul de unde se pot crea jocuri locale."""
     return render_template('interactive_bb84.html')
+
+@app.route('/minigames')
+def minigames():
+    return render_template('minigames.html')
+
 
 # Ruta pentru paginile de joc ale participantilor
 @app.route('/play_bb84_local')

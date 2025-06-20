@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block title %}Quantum Slot Machine{% endblock %}
+
+{% block content %}
+<div class="card p-4 p-md-5 text-center">
+    <h1 class="quantum-title">Quantum Slots</h1>
+    <p class="mb-4">Un slot machine unde rezultatul este cu adevărat aleatoriu, determinat de colapsul stării cuantice.</p>
+
+    <!-- Display-ul rolelor cuantice -->
+    <div class="reels-container my-5">
+        <div class="reel" id="reel1">
+            <div class="superposition-overlay">?</div>
+            <span class="symbol">⚛️</span>
+        </div>
+        <div class="reel" id="reel2">
+            <div class="superposition-overlay">?</div>
+            <span class="symbol">⚛️</span>
+        </div>
+        <div class="reel" id="reel3">
+            <div class="superposition-overlay">?</div>
+            <span class="symbol">⚛️</span>
+        </div>
+    </div>
+
+    <!-- Panoul de control si rezultate -->
+    <div class="controls-panel">
+        <div class="status-display mb-4">
+            <div class="w-100">
+                <h5 class="mb-1">CREDITE</h5>
+                <p id="credits-display" class="display-6 mb-0">100</p>
+            </div>
+            <div class="w-100">
+                <h5 class="mb-1">CÂȘTIG</h5>
+                <p id="win-display" class="display-6 mb-0">0</p>
+            </div>
+        </div>
+        <button id="spin-button" class="btn btn-spin w-100">MĂSOARĂ QUBIȚII</button>
+        <p id="result-text" class="result-text mt-3">&nbsp;</p>
+    </div>
+
+    <!-- Sectiunea explicativa a algoritmului -->
+    <div class="how-it-works mt-4">
+        <details>
+            <summary>Cum funcționează algoritmul cuantic?</summary>
+            <div class="explanation-grid mt-3">
+                <div class="step">
+                    <div class="icon-wrapper"><i class="bi bi-diagram-3-fill"></i></div>
+                    <h6>1. Circuitul Cuantic</h6>
+                    <p>La fiecare apăsare, se definește un circuit cu 3 qubiți. Fiecare linie reprezintă un qubit în starea inițială `|0>`.</p>
+                    <code class="circuit-display">q0: |0> ---[H]---[M]<br>q1: |0> ---[H]---[M]<br>q2: |0> ---[H]---[M]</code>
+                </div>
+                <div class="step">
+                    <div class="icon-wrapper"><i class="bi bi-layers-half"></i></div>
+                    <h6>2. Superpoziția (Poarta H)</h6>
+                    <p>Poarta Hadamard [H] este aplicată pe fiecare qubit, aducându-l într-o superpoziție perfectă de `|0>` și `|1>`.</p>
+                </div>
+                <div class="step">
+                    <div class="icon-wrapper"><i class="bi bi-eye-fill"></i></div>
+                    <h6>3. Măsurătoarea (Poarta M)</h6>
+                    <p>Acțiunea de măsurare [M] forțează superpoziția să se colapseze. Rezultatul, `0` sau `1`, este cu adevărat aleatoriu.</p>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <!-- Legenda castigurilor -->
+    <div class="legend mt-4">
+        <h6>Combinații Câștigătoare:</h6>
+        <p class="small">💎💎💎 = 500 Credite (Jackpot!)<br>
+           ⚛️⚛️⚛️ = 100 Credite<br>
+           💎💎 = 50 Credite</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --glow-color-1: #a78bfa;
+        --glow-color-2: #f472b6;
+        --glow-color-jackpot: #facc15;
+    }
+    .card {
+        animation: none !important; 
+        border: 2px solid #a78bfa80;
+        box-shadow: 0 0 30px rgba(167, 139, 250, 0.3);
+    }
+    .card p { color: #e0e7ff; }
+
+    .quantum-title {
+        font-family: 'Orbitron', sans-serif;
+        color: #f472b6;
+        text-shadow: 0 0 15px #f472b6;
+        font-weight: 700;
+    }
+
+    .reels-container { display: flex; justify-content: center; gap: 1.5rem; }
+    .reel {
+        width: 100px; height: 100px; background: rgba(10, 6, 19, 0.7);
+        border: 2px solid #a78bfa; border-radius: 1rem;
+        display: flex; justify-content: center; align-items: center;
+        font-size: 3.5rem; position: relative; overflow: hidden;
+        transition: box-shadow 0.3s, transform 0.3s;
+    }
+    .reel .symbol { transition: opacity 0.2s; }
+
+    .superposition-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        display: flex; justify-content: center; align-items: center;
+        font-size: 4rem; color: #f472b6; opacity: 0;
+        transition: opacity 0.3s;
+        background: radial-gradient(circle, rgba(244,114,182,0.3) 0%, rgba(244,114,182,0) 70%);
+        animation: pulse 1s infinite ease-in-out;
+    }
+
+    .reel.spinning .superposition-overlay { opacity: 1; }
+    .reel.spinning .symbol { opacity: 0.1; }
+    @keyframes pulse { 0%, 100% { transform: scale(0.9); } 50% { transform: scale(1.1); } }
+    
+    .reel.jackpot {
+        box-shadow: 0 0 25px var(--glow-color-jackpot);
+        border-color: var(--glow-color-jackpot);
+        transform: scale(1.1);
+    }
+    .reel.jackpot .symbol { animation: jackpot-text 1s infinite; }
+    @keyframes jackpot-text { 0%, 100% { text-shadow: 0 0 10px var(--glow-color-jackpot); } 50% { text-shadow: 0 0 30px var(--glow-color-jackpot); } }
+
+    .controls-panel { background-color: #232136; border-radius: 1rem; padding: 1.5rem; margin-top: 1rem; }
+    .status-display { display: flex; justify-content: space-around; gap: 1rem; }
+    .status-display h5 { font-size: 0.8rem; color: #a78bfa; letter-spacing: 2px; }
+    .status-display p { font-weight: 700; color: #ffffff; }
+    
+    .btn-spin {
+        background: linear-gradient(45deg, #a78bfa, #f472b6);
+        color: white; font-family: 'Orbitron', sans-serif; font-size: 1.2rem;
+        font-weight: 700; border: none; border-radius: 0.75rem;
+        padding: 0.75rem 1rem; transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+    .btn-spin:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(167, 139, 250, 0.5); }
+    .btn-spin:active { transform: translateY(-1px); }
+    .btn-spin:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result-text { min-height: 1.5em; font-weight: bold; }
+    .legend { font-size: 0.8rem; opacity: 0.7; }
+    
+    .how-it-works summary {
+        cursor: pointer; font-weight: bold; color: #a78bfa;
+        opacity: 0.8; transition: opacity 0.2s;
+    }
+    .how-it-works summary:hover { opacity: 1; }
+    .explanation-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem; text-align: left; background-color: #232136;
+        padding: 1rem; border-radius: 1rem;
+    }
+    .explanation-grid .step .icon-wrapper { font-size: 2rem; color: #f472b6; margin-bottom: 0.5rem; }
+    .explanation-grid .step h6 { color: #c4b5fd; margin-bottom: 0.5rem; }
+    .explanation-grid .step p { font-size: 0.8rem; line-height: 1.4; opacity: 0.8; }
+    .circuit-display {
+        background-color: #110d1e;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// --- Mini Quantum Simulator ---
+const quantumSimulator = {
+    // Creează un set de qubiți, toți în starea |0>
+    createQubits(num) {
+        // Starea |0> este reprezentata de vectorul [1, 0]
+        return Array(num).fill(null).map(() => ({ alpha: 1, beta: 0 }));
+    },
+    // Aplică poarta Hadamard unui qubit
+    hadamard(qubit) {
+        // Matricea Hadamard H = 1/sqrt(2) * [[1, 1], [1, -1]]
+        const sqrt2 = Math.sqrt(2);
+        const newAlpha = (qubit.alpha + qubit.beta) / sqrt2;
+        const newBeta = (qubit.alpha - qubit.beta) / sqrt2;
+        return { alpha: newAlpha, beta: newBeta };
+    },
+    // Măsoară un qubit
+    measure(qubit) {
+        // Probabilitatea de a măsura |0> este |alpha|^2
+        const prob0 = Math.pow(Math.abs(qubit.alpha), 2);
+        // Generează un număr aleatoriu și compară cu probabilitatea
+        if (Math.random() < prob0) {
+            return 0; // Colaps la starea |0>
+        } else {
+            return 1; // Colaps la starea |1>
+        }
+    }
+};
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const reels = [
+        document.getElementById('reel1'),
+        document.getElementById('reel2'),
+        document.getElementById('reel3'),
+    ];
+    const spinButton = document.getElementById('spin-button');
+    const creditsDisplay = document.getElementById('credits-display');
+    const winDisplay = document.getElementById('win-display');
+    const resultText = document.getElementById('result-text');
+    
+    let credits = 100;
+    const SPIN_COST = 5;
+    const SYMBOLS = ['⚛️', '💎']; // 0 = Atom, 1 = Diamond
+    const WINNINGS = {
+        '💎💎💎': 500, '⚛️⚛️⚛️': 100, '💎💎': 50,
+    };
+
+    function updateDisplays() {
+        creditsDisplay.textContent = credits;
+    }
+
+    async function spin() {
+        if (credits < SPIN_COST) {
+            resultText.textContent = "CREDITE INSUFICIENTE!";
+            return;
+        }
+
+        credits -= SPIN_COST;
+        winDisplay.textContent = 0;
+        resultText.textContent = "SE APLICĂ SUPERPOZIȚIA...";
+        updateDisplays();
+        spinButton.disabled = true;
+        reels.forEach(reel => {
+            reel.classList.add('spinning');
+            reel.classList.remove('jackpot');
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        resultText.textContent = "MĂSURĂTOARE ÎN CURS...";
+        
+        // --- SIMULARE CUANTICĂ ---
+        let qubits = quantumSimulator.createQubits(3);
+        // 1. Aplică poarta Hadamard (superpoziție)
+        qubits = qubits.map(q => quantumSimulator.hadamard(q));
+        // 2. Măsoară fiecare qubit pentru a obține rezultatul
+        const results = qubits.map(q => quantumSimulator.measure(q));
+
+        reels.forEach((reel, index) => {
+            reel.classList.remove('spinning');
+            reel.querySelector('.symbol').textContent = SYMBOLS[results[index]];
+        });
+        
+        const finalSymbols = results.map(r => SYMBOLS[r]);
+        let winAmount = 0;
+        let resultMessage = "NIMIC DE DATA ASTA...";
+
+        if (finalSymbols.join('') === '💎💎💎') {
+            winAmount = WINNINGS['💎💎💎'];
+            resultMessage = "JACKPOT CUANTIC!";
+            reels.forEach(reel => reel.classList.add('jackpot'));
+        } else if (finalSymbols.join('') === '⚛️⚛️⚛️') {
+            winAmount = WINNINGS['⚛️⚛️⚛️'];
+            resultMessage = "CORELATIE PERFECTA!";
+        } else if (finalSymbols.filter(s => s === '💎').length === 2) {
+            winAmount = WINNINGS['💎💎'];
+            resultMessage = "SUPERPOZIȚIE CÂȘTIGĂTOARE!";
+        }
+        
+        credits += winAmount;
+        winDisplay.textContent = winAmount;
+        resultText.textContent = resultMessage;
+        updateDisplays();
+        
+        if (credits < SPIN_COST) {
+             resultText.textContent = "GAME OVER - FĂRĂ CREDITE!";
+        } else {
+            spinButton.disabled = false;
+        }
+    }
+
+    spinButton.addEventListener('click', spin);
+    updateDisplays();
+});
+</script>
+{% endblock %}
